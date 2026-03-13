@@ -30,10 +30,16 @@
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans flex flex-col min-h-screen">
 
-    <header class="bg-yellow-400 text-white p-4 shadow-md flex justify-between items-center z-10 sticky top-0 shrink-0">
-        <h1 class="text-2xl font-bold cursor-pointer" onclick="navigate('home')">😂 笑話大全</h1>
-        <div class="space-x-4 flex items-center">
-            <button onclick="searchJokes()" class="hover:text-yellow-200 text-xl" title="搜尋">🔍</button>
+    <header class="bg-yellow-400 text-white p-4 shadow-md flex justify-between items-center z-10 sticky top-0 shrink-0 h-16">
+        <h1 class="text-2xl font-bold cursor-pointer transition-all duration-300" id="main-title" onclick="navigate('home')">😂 笑話大全</h1>
+        
+        <div class="flex items-center gap-3">
+            <div id="search-bar-container" class="hidden overflow-hidden transition-all duration-300 flex items-center bg-white rounded-full px-3 py-1.5 shadow-inner w-48 sm:w-64">
+                <input type="text" id="header-search-input" class="outline-none text-sm w-full text-gray-700 bg-transparent" placeholder="搜尋關鍵字..." onkeydown="if(event.key==='Enter') executeSearch()">
+                <button onclick="executeSearch()" class="text-gray-400 hover:text-yellow-500 text-sm ml-1 whitespace-nowrap">送出</button>
+            </div>
+            
+            <button onclick="toggleSearch()" id="btn-toggle-search" class="hover:text-yellow-200 text-xl font-bold transition-all" title="搜尋">🔍</button>
             <button onclick="navigate('stats')" class="hover:text-yellow-200 text-xl" title="統計">📊</button>
             <button onclick="checkAdminAccess()" class="hover:text-yellow-200 text-xl" title="設定">⚙️</button>
             <button onclick="handleAuthClick()" id="nav-auth-btn" class="hover:text-yellow-200 text-xl" title="會員登入">👤</button>
@@ -134,7 +140,10 @@
                     後台管理 
                     <span id="sync-status-admin" class="text-sm font-normal text-red-500 ml-2">(Firebase 尚未設定)</span>
                 </h2>
-                <button onclick="userLogout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold transition text-sm">登出</button>
+                <div class="flex gap-2">
+                    <button onclick="forceSyncCloud()" class="bg-blue-100 hover:bg-blue-200 text-blue-700 px-4 py-2 rounded font-bold transition text-sm">強制覆蓋上傳雲端</button>
+                    <button onclick="userLogout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold transition text-sm">登出</button>
+                </div>
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-purple-400">
@@ -168,11 +177,10 @@
 
             <div class="bg-white p-4 rounded-xl shadow overflow-x-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
-                    <h3 class="text-lg font-bold">現有笑話列表 <span class="text-xs font-normal text-gray-400 ml-2">(點擊欄位直接修改)</span></h3>
+                    <h3 class="text-lg font-bold">現有笑話列表</h3>
                     
                     <div class="flex gap-2 w-full sm:w-auto">
-                        <input type="text" id="admin-search-input" placeholder="搜尋表格..." oninput="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm">
-                        
+                        <input type="text" id="admin-search-input" placeholder="搜尋表格..." oninput="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm w-24 sm:w-auto">
                         <select id="admin-sort-select" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
                             <option value="newest">最新新增</option>
                             <option value="oldest">最舊新增</option>
@@ -180,7 +188,6 @@
                             <option value="most-dislikes">最多倒讚</option>
                             <option value="most-favs">最多收藏</option>
                         </select>
-
                         <select id="admin-filter-category" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
                             <option value="all">全部類別</option>
                         </select>
@@ -236,6 +243,9 @@
     </footer>
 
     <script>
+        // ==========================================
+        // Firebase 設定與權限 
+        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyBlJThehQdczOSDrLHKTE126iWnzsdmkKQ",
           authDomain: "jokes-11086.firebaseapp.com",
@@ -247,7 +257,8 @@
           measurementId: "G-Q3S9BH55RG"
         };
         
-        const ADMIN_EMAIL = "chenwei.c0508@gmail.com"; 
+        // 請將此處改為你在後台建立的唯一「管理員信箱」
+        const ADMIN_EMAIL = "chenwei.c0508@gmail.com";
 
         let db = null;
         let auth = null;
@@ -276,7 +287,7 @@
                         statusAdmin.innerText = "(管理員已登入 🟢)";
                         statusAdmin.className = "text-sm font-normal text-green-500 ml-2";
                     } else {
-                        statusAdmin.innerText = "(一般訪客登入中 🟡)";
+                        statusAdmin.innerText = "(一般會員登入中 🟡)";
                         statusAdmin.className = "text-sm font-normal text-yellow-500 ml-2";
                     }
                 } else {
@@ -357,6 +368,7 @@
             }
         };
 
+        // 核心存檔邏輯，加入錯誤捕捉與提示
         function saveData() {
             localStorage.setItem('jokesDB', JSON.stringify(jokes));
             localStorage.setItem('categoriesDB', JSON.stringify(categories));
@@ -364,12 +376,25 @@
 
             if (useFirebase && db && auth.currentUser) {
                 db.ref('appData').set({ jokes: jokes, categories: categories, logs: updateLogs })
-                  .catch(err => alert("儲存失敗！可能權限不足：" + err.message));
-            } else if(useFirebase && !auth.currentUser) {
-                console.log("訪客無法直接寫入雲端");
+                  .catch(err => {
+                      console.error("寫入失敗", err);
+                      alert(`寫入雲端失敗！\n錯誤原因：${err.message}\n(請確認 Firebase 的 Security Rules 是否有開放 ".write": "auth != null")`);
+                  });
+            }
+        }
+        
+        // 後台強制上傳按鈕 (將本機的資料蓋過雲端)
+        function forceSyncCloud() {
+            if(confirm("即將把本機的資料強制覆蓋到雲端！\n如果你才剛匯入 CSV，請點擊確定同步。")) {
+                addLog("管理員強制執行了雲端資料覆蓋同步。");
+                saveData();
+                alert("已發送同步請求！若沒跳出權限錯誤，即代表同步成功。");
             }
         }
 
+        // ==========================================
+        // 介面與功能邏輯
+        // ==========================================
         function navigate(view) {
             document.querySelectorAll('.view-section').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex'); });
             const target = document.getElementById(`view-${view}`);
@@ -380,6 +405,42 @@
             if (view === 'stats') renderStats();
         }
 
+        // 4. 展開式搜尋框邏輯
+        function toggleSearch() {
+            const container = document.getElementById('search-bar-container');
+            const title = document.getElementById('main-title');
+            const btn = document.getElementById('btn-toggle-search');
+            
+            if (container.classList.contains('hidden')) {
+                container.classList.remove('hidden');
+                title.classList.add('hidden'); // 隱藏標題騰出空間
+                btn.innerText = '✖️';
+                btn.classList.remove('font-bold');
+                document.getElementById('header-search-input').focus();
+            } else {
+                container.classList.add('hidden');
+                title.classList.remove('hidden'); // 恢復標題
+                btn.innerText = '🔍';
+                btn.classList.add('font-bold');
+                document.getElementById('header-search-input').value = '';
+            }
+        }
+
+        function executeSearch() {
+            const kw = document.getElementById('header-search-input').value.trim().toLowerCase();
+            if(!kw) return;
+            
+            currentCategoryJokes = jokes.filter(j => j.question.toLowerCase().includes(kw) || j.answer.toLowerCase().includes(kw));
+            if (currentCategoryJokes.length === 0) { alert(`找不到包含「${kw}」的笑話喔！`); return; }
+            
+            document.getElementById('joke-category-title').innerText = `搜尋結果：${kw} (共 ${currentCategoryJokes.length} 則)`;
+            currentIndex = 0; setJokeMode('list'); navigate('joke');
+            toggleSearch(); // 搜完收起
+        }
+
+        // 原本 prompt 版本的搜尋改叫 searchJokes (若網頁哪邊還有按鈕的話備用)
+        function searchJokes() { toggleSearch(); }
+
         function renderHome() {
             const listEl = document.getElementById('category-list');
             listEl.innerHTML = '';
@@ -388,10 +449,13 @@
             usedCategories.forEach(c => { if(!categories.includes(c)) { categories.push(c); needsSave = true; } });
             if(needsSave && (!useFirebase || (auth && auth.currentUser))) saveData();
 
+            // 1. 新增我的收藏按鈕
             const specialCats = [
+                { name: '❤️ 我的收藏', action: () => openJokeView('我的收藏') },
                 { name: '🎲 隨機漫遊', action: () => openJokeView('隨機') },
                 { name: '📅 每日精選', action: () => openJokeView('每日笑話') }
             ];
+            
             specialCats.forEach(cat => {
                 const btn = document.createElement('button');
                 btn.className = "bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 font-bold text-lg border-2 border-transparent hover:border-yellow-400 text-gray-700";
@@ -407,19 +471,25 @@
             });
         }
 
-        function searchJokes() {
-            const keyword = prompt("請輸入搜尋關鍵字 (問題或答案)：");
-            if(keyword === null || !keyword.trim()) return;
-            const kw = keyword.trim().toLowerCase();
-            currentCategoryJokes = jokes.filter(j => j.question.toLowerCase().includes(kw) || j.answer.toLowerCase().includes(kw));
-            if (currentCategoryJokes.length === 0) { alert(`找不到包含「${kw}」的笑話喔！`); return; }
-            document.getElementById('joke-category-title').innerText = `搜尋結果：${kw} (共 ${currentCategoryJokes.length} 則)`;
-            currentIndex = 0; setJokeMode('list'); navigate('joke');
-        }
-
         function openJokeView(category) {
             document.getElementById('flashcard').classList.remove('flipped');
-            if (category === '隨機') {
+            
+            // 處理「我的收藏」過濾邏輯
+            if (category === '我的收藏') {
+                if (!auth || !auth.currentUser) {
+                    alert("請先登入會員才能查看您的專屬收藏喔！");
+                    document.getElementById('login-modal').classList.remove('hidden');
+                    return;
+                }
+                const uid = auth.currentUser.uid;
+                currentCategoryJokes = jokes.filter(j => j.favs && j.favs[uid]);
+                if (currentCategoryJokes.length === 0) {
+                    alert("您還沒有收藏任何笑話喔！趕快去逛逛並按下愛心吧！");
+                    return;
+                }
+                document.getElementById('joke-category-title').innerText = "❤️ 我的收藏";
+            } 
+            else if (category === '隨機') {
                 currentCategoryJokes = [...jokes].sort(() => 0.5 - Math.random());
                 document.getElementById('joke-category-title').innerText = "類別：隨機漫遊";
             } else if (category === '每日笑話') {
@@ -430,7 +500,8 @@
                 currentCategoryJokes = jokes.filter(j => j.category === category);
                 document.getElementById('joke-category-title').innerText = `類別：${category}`;
             }
-            if (currentCategoryJokes.length === 0) { alert(`「${category}」目前還沒有笑話喔！趕快去後台新增吧！`); return; }
+            
+            if (currentCategoryJokes.length === 0) { alert(`「${category}」目前還沒有笑話喔！`); return; }
             currentIndex = 0; setJokeMode('flashcard'); navigate('joke');
         }
 
@@ -709,7 +780,6 @@
             if (currentFilter !== 'all') mappedJokes = mappedJokes.filter(j => j.category === currentFilter);
             if (searchVal) mappedJokes = mappedJokes.filter(j => j.question.toLowerCase().includes(searchVal) || j.answer.toLowerCase().includes(searchVal));
 
-            // 更新排序邏輯：加入倒讚與最多讚、最多收藏排序
             if (sortVal === 'newest') {
                 mappedJokes.sort((a, b) => b.id - a.id);
             } else if (sortVal === 'oldest') {
