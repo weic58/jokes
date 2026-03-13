@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>笑話大全</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%2250%25%22 x=%2250%25%22 dominant-baseline=%22central%22 text-anchor=%22middle%22 font-size=%2280%22>😂</text></svg>">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* 單字卡翻轉動畫設定 */
+        .perspective-1000 { perspective: 1000px; }
+        .transform-style-3d { transform-style: preserve-3d; }
+        .backface-hidden { backface-visibility: hidden; }
+        .rotate-y-180 { transform: rotateY(180deg); }
+        .card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
+        .flipped .card-inner { transform: rotateY(180deg); }
+        
+        /* 隱藏捲軸但保持可捲動 */
+        ::-webkit-scrollbar { width: 0px; background: transparent; }
+    </style>
+</head>
+<body class="bg-gray-100 text-gray-800 font-sans flex flex-col min-h-screen">
+
+    <header class="bg-yellow-400 text-white p-4 shadow-md flex justify-between items-center z-10 sticky top-0 shrink-0">
+        <h1 class="text-2xl font-bold cursor-pointer" onclick="navigate('home')">笑話大全</h1>
+        <div class="space-x-4 flex items-center">
+            <button onclick="searchJokes()" class="hover:text-yellow-200 text-xl" title="搜尋">🔍</button>
+            <button onclick="navigate('stats')" class="hover:text-yellow-200 text-xl" title="統計">📊</button>
+            <button onclick="promptAdmin()" class="hover:text-yellow-200 text-xl" title="設定">⚙️</button>
+        </div>
+    </header>
+
+    <main class="flex-grow p-4 relative overflow-hidden flex flex-col items-center" id="main-content">
+        
+        <div id="view-home" class="view-section w-full max-w-2xl flex-grow">
+            <h2 class="text-xl font-bold mb-4 text-center text-gray-700">選擇一個類別開始笑吧！</h2>
+            <div id="category-list" class="grid grid-cols-2 gap-4 sm:grid-cols-3">
+                </div>
+        </div>
+
+        <div id="view-joke" class="view-section hidden w-full flex-grow flex-col items-center justify-start">
+            <div class="w-full flex flex-col items-center pt-4 shrink-0">
+                <h2 id="joke-category-title" class="text-lg font-bold text-gray-600 mb-4"></h2>
+                
+                <div class="flex gap-2 mb-2 bg-gray-200 p-1 rounded-full">
+                    <button onclick="setJokeMode('flashcard')" id="btn-mode-flashcard" class="px-6 py-2 rounded-full font-bold transition-colors">單字卡</button>
+                    <button onclick="setJokeMode('list')" id="btn-mode-list" class="px-6 py-2 rounded-full font-bold transition-colors">條列式</button>
+                </div>
+            </div>
+
+            <div class="w-full flex-grow flex flex-col items-center justify-center pb-8">
+                <div id="flashcard-container" class="w-full max-w-sm flex flex-col items-center">
+                    <div id="flashcard" class="w-full h-80 perspective-1000 cursor-pointer" onclick="toggleCard()">
+                        <div class="card-inner relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
+                            <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400">
+                                <span class="text-sm text-yellow-500 font-bold absolute top-4 left-4">Q.</span>
+                                <p id="joke-question" class="text-xl font-semibold text-center"></p>
+                                <span class="text-xs text-gray-400 absolute bottom-4 animate-pulse">點擊翻面</span>
+                            </div>
+                            <div class="absolute w-full h-full backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white">
+                                <span class="text-sm text-yellow-100 font-bold absolute top-4 left-4">A.</span>
+                                <p id="joke-answer" class="text-2xl font-bold text-center"></p>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="flex justify-between w-full mt-8 px-2">
+                        <button onclick="prevJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition">⬅️ 前一個</button>
+                        <button onclick="nextJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition">下一個 ➡️</button>
+                    </div>
+                    <p class="text-gray-400 text-sm mt-4">也可以在卡片上左右滑動喔！</p>
+                </div>
+
+                <div id="list-container" class="hidden w-full max-w-2xl flex-col gap-4 overflow-y-auto mt-4" style="max-height: 100%;">
+                    </div>
+            </div>
+        </div>
+
+        <div id="view-admin" class="view-section hidden w-full max-w-4xl flex-grow">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">後台管理</h2>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-purple-400">
+                <h3 class="text-lg font-bold mb-2 text-purple-700">管理類別</h3>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <input type="text" id="add-new-category-input" placeholder="輸入新類別名稱..." class="border p-2 rounded flex-1 focus:outline-none focus:border-purple-400">
+                    <button onclick="addNewCategory()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition whitespace-nowrap">新增類別</button>
+                </div>
+                <div id="admin-category-list" class="mt-4 flex flex-wrap gap-2">
+                    </div>
+                <p class="text-xs text-gray-400 mt-2">提示：點擊標籤文字即可直接重新命名類別名稱。</p>
+            </div>
+            
+            <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-green-400">
+                <h3 class="text-lg font-bold mb-2 text-green-700">新增笑話</h3>
+                <div class="flex flex-col sm:flex-row gap-2">
+                    <select id="add-category-select" class="border p-2 rounded flex-1 focus:outline-none focus:border-green-400 bg-white">
+                        </select>
+                    <input type="text" id="add-question" placeholder="問題" class="border p-2 rounded flex-2 focus:outline-none focus:border-green-400">
+                    <input type="text" id="add-answer" placeholder="答案" class="border p-2 rounded flex-2 focus:outline-none focus:border-green-400">
+                    <button onclick="addJoke()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition whitespace-nowrap">新增笑話</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-blue-400">
+                <h3 class="text-lg font-bold mb-2 text-blue-700">批量匯入 (CSV)</h3>
+                <p class="text-sm text-gray-500 mb-2">格式：類別,問題,答案 (第一行不可為標題)</p>
+                <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
+                    <input type="file" id="csv-file" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
+                    <button onclick="importCSV()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition whitespace-nowrap mt-2 sm:mt-0">上傳並匯入</button>
+                </div>
+            </div>
+
+            <div class="bg-white p-4 rounded-xl shadow overflow-x-auto">
+                <h3 class="text-lg font-bold mb-2">現有笑話列表 <span class="text-xs font-normal text-gray-400 ml-2">(點擊欄位文字即可直接修改)</span></h3>
+                <table class="w-full text-left border-collapse min-w-[600px]">
+                    <thead>
+                        <tr class="bg-gray-100">
+                            <th class="p-3 border font-semibold w-1/5">類別</th>
+                            <th class="p-3 border font-semibold w-2/5">問題</th>
+                            <th class="p-3 border font-semibold w-2/5">答案</th>
+                            <th class="p-3 border font-semibold text-center w-auto">操作</th>
+                        </tr>
+                    </thead>
+                    <tbody id="admin-table-body">
+                        </tbody>
+                </table>
+                <div class="mt-6 text-right">
+                    <button onclick="clearAllData()" class="bg-red-500 text-white px-4 py-2 rounded hover:bg-red-600 text-sm transition">清除所有資料 (還原預設)</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="view-stats" class="view-section hidden w-full max-w-4xl flex-grow">
+            <div class="flex justify-between items-center mb-4">
+                <h2 class="text-2xl font-bold">資料統計與紀錄</h2>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div class="bg-white p-4 rounded-xl shadow flex flex-col items-center">
+                    <h3 class="text-lg font-bold mb-2" id="total-jokes-display">總笑話數: 0</h3>
+                    <div class="w-full">
+                        <canvas id="jokesChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="bg-white p-4 rounded-xl shadow h-96 flex flex-col">
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2">更新紀錄</h3>
+                    <ul id="update-logs" class="space-y-3 text-sm overflow-y-auto flex-grow pr-2">
+                        </ul>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <footer class="bg-gray-800 text-gray-400 text-center p-4 mt-auto text-sm shrink-0">
+        <p>Created by weic58 & Gemini, 2026.</p>
+    </footer>
+
+    <script>
+        // --- 核心資料狀態 ---
+        const defaultJokes = [
+            { id: 1, category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)" },
+            { id: 2, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見" },
+            { id: 3, category: "冷笑話", question: "有一天小明走在路上，覺得腳很酸...", answer: "於是他就把檸檬踩碎了。" },
+            { id: 4, category: "原創", question: "寫程式遇到 Bug 怎麼辦？", answer: "當作 Feature 賣掉。" }
+        ];
+
+        let jokes = JSON.parse(localStorage.getItem('jokesDB')) || defaultJokes;
+        
+        let savedCategories = JSON.parse(localStorage.getItem('categoriesDB'));
+        let categories = savedCategories || [...new Set(defaultJokes.map(j => j.category))];
+
+        let updateLogs = JSON.parse(localStorage.getItem('logsDB')) || [
+            { time: new Date().toLocaleString(), msg: "系統初始化，載入預設資料。" }
+        ];
+
+        let currentCategoryJokes = [];
+        let currentIndex = 0;
+        let chartInstance = null;
+        let currentMode = 'flashcard'; 
+
+        // --- 路由與視圖切換 ---
+        function navigate(view) {
+            document.querySelectorAll('.view-section').forEach(el => {
+                el.classList.add('hidden');
+                el.classList.remove('flex'); // 確保 flex-col 被重置
+            });
+            
+            const target = document.getElementById(`view-${view}`);
+            target.classList.remove('hidden');
+            if (view === 'joke') {
+                target.classList.add('flex'); // joke 視圖使用 flex 確保置中
+            }
+
+            if (view === 'home') renderHome();
+            if (view === 'admin') renderAdmin();
+            if (view === 'stats') renderStats();
+        }
+
+        // --- 首頁邏輯 ---
+        function renderHome() {
+            const listEl = document.getElementById('category-list');
+            listEl.innerHTML = '';
+
+            const usedCategories = [...new Set(jokes.map(j => j.category))];
+            usedCategories.forEach(c => {
+                if(!categories.includes(c)) categories.push(c);
+            });
+            saveData();
+
+            const specialCats = [
+                { name: '🎲 隨機漫遊', action: () => openJokeView('隨機') },
+                { name: '📅 每日精選', action: () => openJokeView('每日笑話') }
+            ];
+
+            specialCats.forEach(cat => {
+                const btn = document.createElement('button');
+                btn.className = "bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 font-bold text-lg border-2 border-transparent hover:border-yellow-400 text-gray-700";
+                btn.innerText = cat.name;
+                btn.onclick = cat.action;
+                listEl.appendChild(btn);
+            });
+
+            categories.forEach(cat => {
+                const count = jokes.filter(j => j.category === cat).length;
+                const btn = document.createElement('button');
+                btn.className = "bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 border-2 border-transparent hover:border-yellow-400 flex flex-col items-center justify-center";
+                btn.innerHTML = `<span class="font-bold text-lg text-gray-700">${cat}</span><span class="text-xs text-gray-400 mt-1">${count} 則</span>`;
+                btn.onclick = () => openJokeView(cat);
+                listEl.appendChild(btn);
+            });
+        }
+
+        // --- 搜尋邏輯 ---
+        function searchJokes() {
+            const keyword = prompt("請輸入搜尋關鍵字 (問題或答案)：");
+            if(keyword === null || !keyword.trim()) return;
+            const kw = keyword.trim().toLowerCase();
+
+            currentCategoryJokes = jokes.filter(j => 
+                j.question.toLowerCase().includes(kw) || 
+                j.answer.toLowerCase().includes(kw)
+            );
+
+            if (currentCategoryJokes.length === 0) {
+                alert(`找不到包含「${kw}」的笑話喔！`);
+                return;
+            }
+
+            document.getElementById('joke-category-title').innerText = `搜尋結果：${kw} (共 ${currentCategoryJokes.length} 則)`;
+            currentIndex = 0;
+            
+            setJokeMode('list'); 
+            navigate('joke');
+        }
+
+        // --- 笑話瀏覽邏輯 ---
+        function openJokeView(category) {
+            document.getElementById('flashcard').classList.remove('flipped');
+            
+            if (category === '隨機') {
+                currentCategoryJokes = [...jokes].sort(() => 0.5 - Math.random());
+                document.getElementById('joke-category-title').innerText = "類別：隨機漫遊";
+            } else if (category === '每日笑話') {
+                const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
+                currentCategoryJokes = jokes.length > 0 ? [jokes[dayOfYear % jokes.length]] : [];
+                document.getElementById('joke-category-title').innerText = "類別：每日精選";
+            } else {
+                currentCategoryJokes = jokes.filter(j => j.category === category);
+                document.getElementById('joke-category-title').innerText = `類別：${category}`;
+            }
+
+            if (currentCategoryJokes.length === 0) {
+                alert(`「${category}」目前還沒有笑話喔！趕快去後台新增吧！`);
+                return;
+            }
+
+            currentIndex = 0;
+            setJokeMode('flashcard'); 
+            navigate('joke');
+        }
+
+        // --- 模式切換邏輯 ---
+        function setJokeMode(mode) {
+            currentMode = mode;
+            const btnFlashcard = document.getElementById('btn-mode-flashcard');
+            const btnList = document.getElementById('btn-mode-list');
+            const containerFlashcard = document.getElementById('flashcard-container');
+            const containerList = document.getElementById('list-container');
+
+            if (mode === 'flashcard') {
+                btnFlashcard.className = "px-6 py-2 rounded-full font-bold transition-colors bg-yellow-400 text-white shadow";
+                btnList.className = "px-6 py-2 rounded-full font-bold transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-300";
+                containerFlashcard.classList.remove('hidden');
+                containerFlashcard.classList.add('flex');
+                containerList.classList.add('hidden');
+                containerList.classList.remove('flex');
+                updateCardDisplay();
+            } else {
+                btnList.className = "px-6 py-2 rounded-full font-bold transition-colors bg-yellow-400 text-white shadow";
+                btnFlashcard.className = "px-6 py-2 rounded-full font-bold transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-300";
+                containerFlashcard.classList.add('hidden');
+                containerFlashcard.classList.remove('flex');
+                containerList.classList.remove('hidden');
+                containerList.classList.add('flex');
+                renderListDisplay();
+            }
+        }
+
+        function updateCardDisplay() {
+            if(currentCategoryJokes.length === 0) return;
+            const currentJoke = currentCategoryJokes[currentIndex];
+            document.getElementById('joke-question').innerText = currentJoke.question;
+            document.getElementById('joke-answer').innerText = currentJoke.answer;
+            document.getElementById('flashcard').classList.remove('flipped');
+        }
+
+        function renderListDisplay() {
+            const listContainer = document.getElementById('list-container');
+            listContainer.innerHTML = '';
+            
+            currentCategoryJokes.forEach((joke, idx) => {
+                const card = document.createElement('div');
+                card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3";
+                card.innerHTML = `
+                    <div class="flex items-start gap-2">
+                        <span class="bg-yellow-100 text-yellow-600 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">Q</span>
+                        <p class="font-semibold text-lg text-gray-800">${joke.question}</p>
+                    </div>
+                    <div class="flex items-start gap-2 border-t pt-3">
+                        <span class="bg-gray-100 text-gray-500 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">A</span>
+                        <p class="font-medium text-gray-600">${joke.answer}</p>
+                    </div>
+                `;
+                listContainer.appendChild(card);
+            });
+        }
+
+        function toggleCard() {
+            document.getElementById('flashcard').classList.toggle('flipped');
+        }
+
+        function nextJoke() {
+            document.getElementById('flashcard').classList.remove('flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % currentCategoryJokes.length;
+                updateCardDisplay();
+            }, 150);
+        }
+
+        function prevJoke() {
+            document.getElementById('flashcard').classList.remove('flipped');
+            setTimeout(() => {
+                currentIndex = (currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length;
+                updateCardDisplay();
+            }, 150);
+        }
+
+        let touchStartX = 0;
+        let touchEndX = 0;
+        
+        const flashcardArea = document.getElementById('flashcard');
+        flashcardArea.addEventListener('touchstart', e => {
+            touchStartX = e.changedTouches[0].screenX;
+        }, {passive: true});
+
+        flashcardArea.addEventListener('touchend', e => {
+            touchEndX = e.changedTouches[0].screenX;
+            if(currentMode === 'flashcard') {
+                handleSwipe();
+            }
+        }, {passive: true});
+
+        function handleSwipe() {
+            const threshold = 50; 
+            if (touchStartX - touchEndX > threshold) nextJoke(); 
+            if (touchEndX - touchStartX > threshold) prevJoke(); 
+        }
+
+        // --- 後台管理邏輯 ---
+        function promptAdmin() {
+            const pwd = prompt("請輸入後台密碼：");
+            if (pwd === "wei58") {
+                navigate('admin');
+            } else if (pwd !== null) {
+                alert("密碼錯誤！");
+            }
+        }
+
+        function renderAdmin() {
+            // 3. 渲染可編輯的類別列表
+            const categoryListContainer = document.getElementById('admin-category-list');
+            categoryListContainer.innerHTML = '';
+            categories.forEach((cat, index) => {
+                const badge = document.createElement('div');
+                badge.className = "flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm shadow-sm border border-purple-200";
+                badge.innerHTML = `
+                    <span contenteditable="true" onblur="updateCategoryName(${index}, this)" class="outline-none focus:bg-white focus:ring-2 focus:ring-purple-300 px-1 rounded cursor-text truncate max-w-[150px]">${cat}</span>
+                    <button onclick="deleteCategory(${index})" class="ml-2 text-purple-400 hover:text-red-500 font-bold leading-none text-lg transition-colors">&times;</button>
+                `;
+                categoryListContainer.appendChild(badge);
+            });
+
+            const selectEl = document.getElementById('add-category-select');
+            selectEl.innerHTML = '<option value="" disabled selected>請選擇類別...</option>';
+            categories.forEach(cat => {
+                const opt = document.createElement('option');
+                opt.value = cat;
+                opt.innerText = cat;
+                selectEl.appendChild(opt);
+            });
+
+            // 1. 渲染可直接點擊編輯的笑話列表
+            const tbody = document.getElementById('admin-table-body');
+            tbody.innerHTML = '';
+            jokes.forEach((j, index) => {
+                const tr = document.createElement('tr');
+                tr.className = "border-b hover:bg-gray-50 transition-colors";
+                tr.innerHTML = `
+                    <td class="p-3 border text-gray-700 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'category', this)">${j.category}</td>
+                    <td class="p-3 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'question', this)">${j.question}</td>
+                    <td class="p-3 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'answer', this)">${j.answer}</td>
+                    <td class="p-3 border text-center whitespace-nowrap">
+                        <button onclick="deleteJoke(${index})" class="text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">刪除</button>
+                    </td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        function saveData() {
+            localStorage.setItem('jokesDB', JSON.stringify(jokes));
+            localStorage.setItem('categoriesDB', JSON.stringify(categories));
+            localStorage.setItem('logsDB', JSON.stringify(updateLogs));
+        }
+
+        function addLog(msg) {
+            updateLogs.unshift({ time: new Date().toLocaleString(), msg: msg });
+            if (updateLogs.length > 50) updateLogs.pop(); 
+        }
+
+        // 3. 類別重新命名功能
+        function updateCategoryName(index, element) {
+            const newName = element.innerText.trim();
+            const oldName = categories[index];
+
+            if (!newName) {
+                element.innerText = oldName; 
+                return;
+            }
+
+            if (newName !== oldName) {
+                if (categories.includes(newName) && categories.indexOf(newName) !== index) {
+                    alert("這個類別名稱已經存在囉！");
+                    element.innerText = oldName;
+                    return;
+                }
+                
+                categories[index] = newName;
+                
+                let affectedJokes = 0;
+                jokes.forEach(j => {
+                    if (j.category === oldName) {
+                        j.category = newName;
+                        affectedJokes++;
+                    }
+                });
+
+                if (affectedJokes > 0) {
+                    addLog(`將類別「${oldName}」重新命名為「${newName}」，共更新了 ${affectedJokes} 則笑話。`);
+                }
+                saveData();
+                renderAdmin();
+            }
+        }
+
+        // 3. 刪除類別功能
+        function deleteCategory(index) {
+            const catName = categories[index];
+            const jokesInCat = jokes.filter(j => j.category === catName).length;
+            
+            if (jokesInCat > 0) {
+                if(!confirm(`「${catName}」類別底下還有 ${jokesInCat} 則笑話，刪除類別並不會刪除笑話，但建議先為這些笑話更改類別。確定要移除這個類別標籤嗎？`)) {
+                    return;
+                }
+            } else {
+                if(!confirm(`確定要刪除「${catName}」這個類別嗎？`)) {
+                    return;
+                }
+            }
+            
+            categories.splice(index, 1);
+            addLog(`移除了類別：「${catName}」。`);
+            saveData();
+            renderAdmin();
+        }
+
+        function addNewCategory() {
+            const newCat = document.getElementById('add-new-category-input').value.trim();
+            if (!newCat) {
+                alert("請輸入類別名稱！");
+                return;
+            }
+            if (categories.includes(newCat)) {
+                alert("這個類別已經存在囉！");
+                return;
+            }
+            categories.push(newCat);
+            addLog(`新增了類別：「${newCat}」。`);
+            saveData();
+            document.getElementById('add-new-category-input').value = '';
+            renderAdmin();
+        }
+
+        function addJoke() {
+            const category = document.getElementById('add-category-select').value;
+            const question = document.getElementById('add-question').value.trim();
+            const answer = document.getElementById('add-answer').value.trim();
+
+            if (!category || !question || !answer) {
+                alert("請完整選擇類別並填寫問題與答案！");
+                return;
+            }
+
+            jokes.push({ id: Date.now(), category, question, answer });
+            addLog(`新增了一則「${category}」類別的笑話。`);
+            saveData();
+            
+            document.getElementById('add-question').value = '';
+            document.getElementById('add-answer').value = '';
+            renderAdmin();
+        }
+
+        // 1. 直接點擊表格欄位更新笑話資料
+        function updateJokeInline(index, field, element) {
+            const newValue = element.innerText.trim();
+            const oldValue = jokes[index][field];
+
+            if (!newValue) {
+                element.innerText = oldValue; // 若為空值，還原原本文字
+                return;
+            }
+
+            if (newValue !== oldValue) {
+                jokes[index][field] = newValue;
+                
+                // 如果修改的是類別，且輸入了全新的類別，則自動加入類別清單
+                if (field === 'category' && !categories.includes(newValue)) {
+                    categories.push(newValue);
+                    addLog(`因修改笑話而自動新增了新類別：「${newValue}」。`);
+                }
+
+                saveData();
+                renderAdmin(); // 重新渲染以確保下拉選單與列表同步
+            }
+        }
+
+        function deleteJoke(index) {
+            if (confirm("確定要刪除這則笑話嗎？")) {
+                const deletedCat = jokes[index].category;
+                jokes.splice(index, 1);
+                addLog(`刪除了一則「${deletedCat}」類別的笑話。`);
+                saveData();
+                renderAdmin();
+            }
+        }
+
+        function clearAllData() {
+            if(confirm("警告：這將會清除所有笑話、自訂類別與紀錄，還原為初始狀態！確定嗎？")) {
+                jokes = [...defaultJokes];
+                categories = [...new Set(defaultJokes.map(j => j.category))];
+                updateLogs = [{ time: new Date().toLocaleString(), msg: "系統重置，還原預設資料。" }];
+                saveData();
+                renderAdmin();
+            }
+        }
+
+        function importCSV() {
+            const fileInput = document.getElementById('csv-file');
+            const file = fileInput.files[0];
+            if (!file) {
+                alert("請先選擇一個 CSV 檔案。");
+                return;
+            }
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const text = e.target.result;
+                const rows = text.split('\n');
+                let addedCount = 0;
+                let addedCategories = new Set();
+
+                rows.forEach(row => {
+                    const cols = row.split(',');
+                    if (cols.length >= 3) {
+                        const cat = cols[0].trim();
+                        const q = cols[1].trim();
+                        const a = cols[2].trim();
+                        if (cat && q && a) {
+                            jokes.push({ id: Date.now() + Math.random(), category: cat, question: q, answer: a });
+                            addedCategories.add(cat);
+                            if (!categories.includes(cat)) {
+                                categories.push(cat);
+                            }
+                            addedCount++;
+                        }
+                    }
+                });
+
+                if (addedCount > 0) {
+                    const catArr = Array.from(addedCategories).join('、');
+                    addLog(`透過 CSV 批量新增了 ${addedCount} 則笑話 (涉及類別：${catArr})。`);
+                    saveData();
+                    renderAdmin();
+                    alert(`成功匯入 ${addedCount} 則笑話！`);
+                } else {
+                    alert("匯入失敗，請檢查 CSV 格式是否正確。");
+                }
+                fileInput.value = ""; 
+            };
+            reader.readAsText(file);
+        }
+
+        // --- 統計視圖邏輯 ---
+        function renderStats() {
+            document.getElementById('total-jokes-display').innerText = `總笑話數: ${jokes.length}`;
+
+            const counts = {};
+            categories.forEach(c => counts[c] = 0); 
+            jokes.forEach(j => {
+                if(counts[j.category] !== undefined) {
+                    counts[j.category]++;
+                } else {
+                    counts[j.category] = 1;
+                }
+            });
+
+            const labels = Object.keys(counts);
+            const data = Object.values(counts);
+
+            const ctx = document.getElementById('jokesChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: '笑話數量',
+                        data: data,
+                        backgroundColor: 'rgba(250, 204, 21, 0.6)',
+                        borderColor: 'rgba(234, 179, 8, 1)',
+                        borderWidth: 1,
+                        borderRadius: 4
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    scales: {
+                        y: { beginAtZero: true, ticks: { stepSize: 1 } }
+                    }
+                }
+            });
+
+            document.getElementById('jokesChart').parentElement.style.height = '300px';
+
+            const logsUl = document.getElementById('update-logs');
+            logsUl.innerHTML = '';
+            updateLogs.forEach(log => {
+                const li = document.createElement('li');
+                li.className = "border-b border-gray-100 pb-2 last:border-0";
+                li.innerHTML = `<span class="text-gray-400 block text-xs mb-0.5">${log.time}</span> <span class="text-gray-700">${log.msg}</span>`;
+                logsUl.appendChild(li);
+            });
+        }
+
+        // 初始化
+        renderHome();
+    </script>
+</body>
+</html>
