@@ -10,6 +10,7 @@
     
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
     <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-database.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-auth.js"></script>
 
     <style>
         .perspective-1000 { perspective: 1000px; }
@@ -28,16 +29,27 @@
         <div class="space-x-4 flex items-center">
             <button onclick="searchJokes()" class="hover:text-yellow-200 text-xl" title="搜尋">🔍</button>
             <button onclick="navigate('stats')" class="hover:text-yellow-200 text-xl" title="統計">📊</button>
-            <button onclick="promptAdmin()" class="hover:text-yellow-200 text-xl" title="設定">⚙️</button>
+            <button onclick="checkAdminAccess()" class="hover:text-yellow-200 text-xl" title="設定">⚙️</button>
         </div>
     </header>
+
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
+        <div class="bg-white p-6 rounded-xl shadow-lg w-80">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">管理員登入</h3>
+            <input type="email" id="admin-email" placeholder="管理員信箱" class="w-full border p-2 mb-3 rounded focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
+            <input type="password" id="admin-pwd" placeholder="密碼" class="w-full border p-2 mb-4 rounded focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" onkeydown="if(event.key==='Enter') adminLogin()">
+            <div class="flex justify-end gap-2">
+                <button onclick="closeLoginModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded transition">取消</button>
+                <button onclick="adminLogin()" class="px-4 py-2 bg-yellow-400 text-white font-bold rounded hover:bg-yellow-500 transition shadow-sm">登入</button>
+            </div>
+        </div>
+    </div>
 
     <main class="flex-grow p-4 relative overflow-hidden flex flex-col items-center" id="main-content">
         
         <div id="view-home" class="view-section w-full max-w-2xl flex-grow">
             <h2 class="text-xl font-bold mb-4 text-center text-gray-700">選擇一個類別開始笑吧！</h2>
-            <div id="category-list" class="grid grid-cols-2 gap-4 sm:grid-cols-3">
-                </div>
+            <div id="category-list" class="grid grid-cols-2 gap-4 sm:grid-cols-3"></div>
         </div>
 
         <div id="view-joke" class="view-section hidden w-full flex-grow flex-col items-center justify-start">
@@ -72,14 +84,17 @@
                     <p class="text-gray-400 text-sm mt-4">也可以在卡片上左右滑動喔！</p>
                 </div>
 
-                <div id="list-container" class="hidden w-full max-w-2xl flex-col gap-4 overflow-y-auto mt-4" style="max-height: 100%;">
-                </div>
+                <div id="list-container" class="hidden w-full max-w-2xl flex-col gap-4 overflow-y-auto mt-4" style="max-height: 100%;"></div>
             </div>
         </div>
 
         <div id="view-admin" class="view-section hidden w-full max-w-4xl flex-grow">
             <div class="flex justify-between items-center mb-4">
-                <h2 class="text-2xl font-bold">後台管理 <span id="sync-status" class="text-sm font-normal text-red-500 ml-2">(Firebase 尚未設定，目前為單機版)</span></h2>
+                <h2 class="text-2xl font-bold flex items-center">
+                    後台管理 
+                    <span id="sync-status" class="text-sm font-normal text-red-500 ml-2">(Firebase 尚未設定)</span>
+                </h2>
+                <button onclick="adminLogout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold transition text-sm">登出</button>
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-purple-400">
@@ -170,13 +185,28 @@
         };
 
         let db = null;
+        let auth = null;
         const useFirebase = firebaseConfig.apiKey !== "";
 
         if (useFirebase) {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
-            document.getElementById('sync-status').innerText = "(已連線至 Firebase，資料全球同步中 🟢)";
-            document.getElementById('sync-status').className = "text-sm font-normal text-green-500 ml-2";
+            auth = firebase.auth();
+            
+            // 監聽登入狀態
+            auth.onAuthStateChanged(user => {
+                if(user) {
+                    document.getElementById('sync-status').innerText = "(已連線並登入管理員 🟢)";
+                    document.getElementById('sync-status').className = "text-sm font-normal text-green-500 ml-2";
+                } else {
+                    document.getElementById('sync-status').innerText = "(已連線，目前為訪客模式 🟡)";
+                    document.getElementById('sync-status').className = "text-sm font-normal text-yellow-500 ml-2";
+                    // 如果登出時剛好在後台，強制踢回首頁
+                    if(!document.getElementById('view-admin').classList.contains('hidden')) {
+                        navigate('home');
+                    }
+                }
+            });
         }
 
         // ==========================================
@@ -201,30 +231,26 @@
         // ==========================================
         window.onload = function() {
             if (useFirebase) {
-                // 3. 訪客人數 + 1 (Firebase 版)
                 const visitorRef = db.ref('visitorCount');
                 visitorRef.transaction(current => (current || 0) + 1, (error, committed, snapshot) => {
                     if(committed) document.getElementById('visitor-count').innerText = snapshot.val();
                 });
 
-                // 即時監聽資料庫變化 (同步到所有裝置)
                 db.ref('appData').on('value', snapshot => {
                     const data = snapshot.val();
                     if (data) {
                         jokes = data.jokes || [];
                         categories = data.categories || [];
                         updateLogs = data.logs || [];
-                        // 儲存到本地作為備份
                         localStorage.setItem('jokesDB', JSON.stringify(jokes));
                         localStorage.setItem('categoriesDB', JSON.stringify(categories));
                         localStorage.setItem('logsDB', JSON.stringify(updateLogs));
                     }
                     renderHome(); 
-                    if(document.getElementById('view-admin').classList.contains('hidden') === false) renderAdmin();
-                    if(document.getElementById('view-stats').classList.contains('hidden') === false) renderStats();
+                    if(!document.getElementById('view-admin').classList.contains('hidden')) renderAdmin();
+                    if(!document.getElementById('view-stats').classList.contains('hidden')) renderStats();
                 });
             } else {
-                // 3. 訪客人數 + 1 (單機 LocalStorage 版)
                 let v = parseInt(localStorage.getItem('localVisitors') || '0') + 1;
                 localStorage.setItem('localVisitors', v);
                 document.getElementById('visitor-count').innerText = v;
@@ -233,18 +259,15 @@
         };
 
         function saveData() {
-            // 本地備份
             localStorage.setItem('jokesDB', JSON.stringify(jokes));
             localStorage.setItem('categoriesDB', JSON.stringify(categories));
             localStorage.setItem('logsDB', JSON.stringify(updateLogs));
 
-            // 如果有 Firebase，就推送到雲端
-            if (useFirebase && db) {
-                db.ref('appData').set({
-                    jokes: jokes,
-                    categories: categories,
-                    logs: updateLogs
-                });
+            if (useFirebase && db && auth.currentUser) {
+                db.ref('appData').set({ jokes: jokes, categories: categories, logs: updateLogs })
+                  .catch(err => alert("儲存失敗！可能權限不足：" + err.message));
+            } else if(useFirebase && !auth.currentUser) {
+                alert("你必須登入管理員才能儲存變更到雲端！");
             }
         }
 
@@ -273,7 +296,8 @@
             usedCategories.forEach(c => {
                 if(!categories.includes(c)) { categories.push(c); needsSave = true; }
             });
-            if(needsSave) saveData();
+            // 避免無限觸發存檔
+            if(needsSave && (!useFirebase || (auth && auth.currentUser))) saveData();
 
             const specialCats = [
                 { name: '🎲 隨機漫遊', action: () => openJokeView('隨機') },
@@ -370,7 +394,6 @@
         function nextJoke() { document.getElementById('flashcard').classList.remove('flipped'); setTimeout(() => { currentIndex = (currentIndex + 1) % currentCategoryJokes.length; updateCardDisplay(); }, 150); }
         function prevJoke() { document.getElementById('flashcard').classList.remove('flipped'); setTimeout(() => { currentIndex = (currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length; updateCardDisplay(); }, 150); }
 
-        // 2. 修正滑動偵測 (改綁定在容器上，且改用 clientX)
         let touchStartX = 0;
         let touchEndX = 0;
         const flashcardContainer = document.getElementById('flashcard-container');
@@ -389,12 +412,52 @@
         }, {passive: true});
 
         // ==========================================
-        // 後台管理邏輯
+        // 登入與後台管理邏輯
         // ==========================================
-        function promptAdmin() {
-            const pwd = prompt("請輸入後台密碼：");
-            if (pwd === "wei58") navigate('admin');
-            else if (pwd !== null) alert("密碼錯誤！");
+        function checkAdminAccess() {
+            if (useFirebase) {
+                if (auth.currentUser) {
+                    navigate('admin'); // 已登入直接進後台
+                } else {
+                    document.getElementById('login-modal').classList.remove('hidden'); // 顯示登入視窗
+                }
+            } else {
+                // 如果根本沒設定 Firebase，維持原本的陽春密碼當作單機測試
+                const pwd = prompt("您尚未設定 Firebase。單機測試密碼為 wei58：");
+                if (pwd === "wei58") navigate('admin');
+                else if (pwd !== null) alert("密碼錯誤！");
+            }
+        }
+
+        function closeLoginModal() {
+            document.getElementById('login-modal').classList.add('hidden');
+            document.getElementById('admin-email').value = '';
+            document.getElementById('admin-pwd').value = '';
+        }
+
+        function adminLogin() {
+            const email = document.getElementById('admin-email').value;
+            const pwd = document.getElementById('admin-pwd').value;
+            if(!email || !pwd) { alert("請輸入信箱與密碼！"); return; }
+            
+            auth.signInWithEmailAndPassword(email, pwd)
+                .then((userCredential) => {
+                    closeLoginModal();
+                    navigate('admin');
+                })
+                .catch((error) => {
+                    alert("登入失敗，請檢查信箱或密碼是否正確！");
+                });
+        }
+
+        function adminLogout() {
+            if (useFirebase && auth.currentUser) {
+                auth.signOut().then(() => {
+                    alert("已成功登出！");
+                });
+            } else {
+                navigate('home');
+            }
         }
 
         function addLog(msg) {
