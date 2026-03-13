@@ -31,15 +31,15 @@
 <body class="bg-gray-100 text-gray-800 font-sans flex flex-col min-h-screen">
 
     <header class="bg-yellow-400 text-white p-4 shadow-md flex justify-between items-center z-10 sticky top-0 shrink-0 h-16">
-        <h1 class="text-2xl font-bold cursor-pointer transition-all duration-300" id="main-title" onclick="navigate('home')">😂 笑話大全</h1>
+        <h1 class="text-2xl font-bold cursor-pointer whitespace-nowrap" onclick="navigate('home')">😂 笑話大全</h1>
         
-        <div class="flex items-center gap-3">
-            <div id="search-bar-container" class="hidden overflow-hidden transition-all duration-300 flex items-center bg-white rounded-full px-3 py-1.5 shadow-inner w-48 sm:w-64">
-                <input type="text" id="header-search-input" class="outline-none text-sm w-full text-gray-700 bg-transparent" placeholder="搜尋關鍵字..." onkeydown="if(event.key==='Enter') executeSearch()">
-                <button onclick="executeSearch()" class="text-gray-400 hover:text-yellow-500 text-sm ml-1 whitespace-nowrap">送出</button>
+        <div class="flex items-center gap-3 relative">
+            <div id="search-bar-container" class="absolute right-full mr-2 w-0 opacity-0 overflow-hidden transition-all duration-300 flex items-center bg-white rounded-full h-9 shadow-lg z-20">
+                <input type="text" id="header-search-input" class="outline-none text-sm w-full text-gray-700 bg-transparent px-3" placeholder="搜尋問題或答案..." onkeydown="if(event.key==='Enter') executeSearch()">
+                <button onclick="executeSearch()" class="text-gray-400 hover:text-yellow-500 text-sm mr-3 whitespace-nowrap">送出</button>
             </div>
             
-            <button onclick="toggleSearch()" id="btn-toggle-search" class="hover:text-yellow-200 text-xl font-bold transition-all" title="搜尋">🔍</button>
+            <button onclick="toggleSearch(event)" id="btn-toggle-search" class="hover:text-yellow-200 text-xl font-bold transition-all" title="搜尋">🔍</button>
             <button onclick="navigate('stats')" class="hover:text-yellow-200 text-xl" title="統計">📊</button>
             <button onclick="checkAdminAccess()" class="hover:text-yellow-200 text-xl" title="設定">⚙️</button>
             <button onclick="handleAuthClick()" id="nav-auth-btn" class="hover:text-yellow-200 text-xl" title="會員登入">👤</button>
@@ -70,9 +70,15 @@
 
     <main class="flex-grow p-4 relative overflow-hidden flex flex-col items-center" id="main-content">
         
-        <div id="view-home" class="view-section w-full max-w-2xl flex-grow">
-            <h2 class="text-xl font-bold mb-4 text-center text-gray-700">選擇一個類別開始笑吧！</h2>
-            <div id="category-list" class="grid grid-cols-2 gap-4 sm:grid-cols-3"></div>
+        <div id="view-home" class="view-section w-full max-w-3xl flex-grow flex-col gap-8 hidden">
+            <div class="w-full">
+                <h3 class="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2"><span class="text-2xl">✨</span> 特別企劃</h3>
+                <div id="special-list" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
+            </div>
+            <div class="w-full">
+                <h3 class="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2"><span class="text-2xl">📂</span> 探索類別</h3>
+                <div id="category-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
+            </div>
         </div>
 
         <div id="view-joke" class="view-section hidden w-full flex-grow flex-col items-center justify-start">
@@ -88,28 +94,38 @@
                 <div id="flashcard-container" class="w-full max-w-sm flex flex-col items-center mt-4">
                     <div id="carousel-wrapper" class="relative w-full h-80 flex justify-center items-center">
                         <div id="card-left" class="card-base pos-left hidden" onclick="prevJoke()">
-                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
+                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400 relative">
                                 <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
+                                <span id="joke-cat-left" class="absolute top-4 right-4 bg-gray-100 text-gray-400 px-2 py-1 rounded-full text-xs font-bold hidden"></span>
                                 <p id="joke-q-left" class="text-lg font-semibold text-center"></p>
+                                <span id="joke-source-left" class="absolute bottom-4 left-4 text-gray-300 text-[10px] hidden"></span>
                             </div>
                         </div>
+
                         <div id="flashcard" class="card-base pos-center cursor-pointer perspective-1000" onclick="toggleCard()">
                             <div class="card-inner relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
-                                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400">
+                                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400 relative">
                                     <span class="text-sm text-yellow-500 font-bold absolute top-4 left-4">Q.</span>
+                                    <span id="joke-cat-center" class="absolute top-4 right-4 bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs font-bold hidden shadow-sm"></span>
                                     <p id="joke-question" class="text-xl font-semibold text-center"></p>
-                                    <span class="text-xs text-gray-400 absolute bottom-4 animate-pulse">點擊翻面</span>
+                                    <span id="joke-source-center" class="absolute bottom-4 left-4 text-gray-400 text-xs hidden"></span>
+                                    <span class="text-xs text-gray-400 absolute bottom-4 animate-pulse right-4">點擊翻面</span>
                                 </div>
-                                <div class="absolute w-full h-full backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white">
+                                <div class="absolute w-full h-full backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white relative">
                                     <span class="text-sm text-yellow-100 font-bold absolute top-4 left-4">A.</span>
+                                    <span id="joke-cat-center-back" class="absolute top-4 right-4 bg-yellow-500 text-yellow-100 px-2 py-1 rounded-full text-xs font-bold hidden shadow-sm"></span>
                                     <p id="joke-answer" class="text-2xl font-bold text-center"></p>
+                                    <span id="joke-source-center-back" class="absolute bottom-4 left-4 text-yellow-200 text-xs hidden"></span>
                                 </div>
                             </div>
                         </div>
+
                         <div id="card-right" class="card-base pos-right hidden" onclick="nextJoke()">
-                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
+                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400 relative">
                                 <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
+                                <span id="joke-cat-right" class="absolute top-4 right-4 bg-gray-100 text-gray-400 px-2 py-1 rounded-full text-xs font-bold hidden"></span>
                                 <p id="joke-q-right" class="text-lg font-semibold text-center"></p>
+                                <span id="joke-source-right" class="absolute bottom-4 left-4 text-gray-300 text-[10px] hidden"></span>
                             </div>
                         </div>
                     </div>
@@ -122,8 +138,7 @@
 
                     <div id="comments-section" class="w-full mt-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
                         <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">留言區 (<span id="count-comment">0</span>)</h4>
-                        <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto text-sm pr-2">
-                            </div>
+                        <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto text-sm pr-2"></div>
                         <div class="flex gap-2">
                             <input type="text" id="comment-input" placeholder="寫下你的評論..." class="flex-1 border p-2 rounded focus:outline-none focus:border-yellow-400 text-sm" onkeydown="if(event.key==='Enter') addComment()">
                             <button onclick="addComment()" class="bg-yellow-400 text-white px-4 py-2 rounded font-bold hover:bg-yellow-500 transition text-sm whitespace-nowrap">送出</button>
@@ -134,7 +149,7 @@
             </div>
         </div>
 
-        <div id="view-admin" class="view-section hidden w-full max-w-4xl flex-grow">
+        <div id="view-admin" class="view-section hidden w-full max-w-5xl flex-grow">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold flex items-center">
                     後台管理 
@@ -153,16 +168,16 @@
                     <button onclick="addNewCategory()" class="bg-purple-500 text-white px-4 py-2 rounded hover:bg-purple-600 transition whitespace-nowrap">新增類別</button>
                 </div>
                 <div id="admin-category-list" class="mt-4 flex flex-wrap gap-2"></div>
-                <p class="text-xs text-gray-400 mt-2">提示：點擊標籤文字即可直接重新命名類別名稱。</p>
             </div>
             
             <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-green-400">
                 <h3 class="text-lg font-bold mb-2 text-green-700">新增笑話</h3>
                 <div class="flex flex-col sm:flex-row gap-2">
-                    <select id="add-category-select" class="border p-2 rounded flex-1 focus:outline-none focus:border-green-400 bg-white"></select>
-                    <input type="text" id="add-question" placeholder="問題" class="border p-2 rounded flex-2 focus:outline-none focus:border-green-400">
-                    <input type="text" id="add-answer" placeholder="答案" class="border p-2 rounded flex-2 focus:outline-none focus:border-green-400">
-                    <button onclick="addJoke()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition whitespace-nowrap">新增笑話</button>
+                    <select id="add-category-select" class="border p-2 rounded w-full sm:w-1/5 focus:outline-none focus:border-green-400 bg-white"></select>
+                    <input type="text" id="add-question" placeholder="問題" class="border p-2 rounded flex-1 focus:outline-none focus:border-green-400">
+                    <input type="text" id="add-answer" placeholder="答案" class="border p-2 rounded flex-1 focus:outline-none focus:border-green-400">
+                    <input type="text" id="add-source" placeholder="來源 (預設:網路)" value="網路" class="border p-2 rounded w-full sm:w-1/6 focus:outline-none focus:border-green-400 text-sm">
+                    <button onclick="addJoke()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition whitespace-nowrap">新增</button>
                 </div>
             </div>
 
@@ -178,9 +193,8 @@
             <div class="bg-white p-4 rounded-xl shadow overflow-x-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
                     <h3 class="text-lg font-bold">現有笑話列表</h3>
-                    
-                    <div class="flex gap-2 w-full sm:w-auto">
-                        <input type="text" id="admin-search-input" placeholder="搜尋表格..." oninput="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm w-24 sm:w-auto">
+                    <div class="flex flex-wrap gap-2 w-full sm:w-auto">
+                        <input type="text" id="admin-search-input" placeholder="搜尋內容或來源..." oninput="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm flex-1 sm:flex-none">
                         <select id="admin-sort-select" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
                             <option value="newest">最新新增</option>
                             <option value="oldest">最舊新增</option>
@@ -193,13 +207,14 @@
                         </select>
                     </div>
                 </div>
-                <table class="w-full text-left border-collapse min-w-[600px] text-sm">
+                <table class="w-full text-left border-collapse min-w-[800px] text-sm mt-2">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="p-2 border font-semibold w-1/5">類別</th>
-                            <th class="p-2 border font-semibold w-1/3">問題</th>
-                            <th class="p-2 border font-semibold w-1/3">答案</th>
-                            <th class="p-2 border font-semibold text-center w-auto">操作</th>
+                            <th class="p-2 border font-semibold w-[15%]">類別</th>
+                            <th class="p-2 border font-semibold w-[28%]">問題</th>
+                            <th class="p-2 border font-semibold w-[28%]">答案</th>
+                            <th class="p-2 border font-semibold w-[15%]">來源</th>
+                            <th class="p-2 border font-semibold text-center w-[14%]">操作</th>
                         </tr>
                     </thead>
                     <tbody id="admin-table-body"></tbody>
@@ -210,25 +225,25 @@
             </div>
         </div>
 
-        <div id="view-stats" class="view-section hidden w-full max-w-4xl flex-grow">
+        <div id="view-stats" class="view-section hidden w-full max-w-5xl flex-grow">
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold">資料統計與紀錄</h2>
             </div>
             
             <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總笑話數</p><p class="text-2xl font-bold text-gray-800" id="stat-total">0</p></div>
-                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總獲讚數 👍</p><p class="text-2xl font-bold text-blue-500" id="stat-likes">0</p></div>
-                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總收藏數 ❤️</p><p class="text-2xl font-bold text-pink-500" id="stat-favs">0</p></div>
-                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總評論數 💬</p><p class="text-2xl font-bold text-green-500" id="stat-comments">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center cursor-pointer border-2 border-yellow-400 transition hover:bg-gray-50" onclick="showLeaderboard('total')" id="card-stat-total"><p class="text-gray-500 text-sm">總笑話數</p><p class="text-2xl font-bold text-gray-800" id="stat-total">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center cursor-pointer border-2 border-transparent transition hover:bg-blue-50" onclick="showLeaderboard('likes')" id="card-stat-likes"><p class="text-gray-500 text-sm">總獲讚數 👍</p><p class="text-2xl font-bold text-blue-500" id="stat-likes">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center cursor-pointer border-2 border-transparent transition hover:bg-pink-50" onclick="showLeaderboard('favs')" id="card-stat-favs"><p class="text-gray-500 text-sm">總收藏數 ❤️</p><p class="text-2xl font-bold text-pink-500" id="stat-favs">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center cursor-pointer border-2 border-transparent transition hover:bg-green-50" onclick="showLeaderboard('comments')" id="card-stat-comments"><p class="text-gray-500 text-sm">總評論數 💬</p><p class="text-2xl font-bold text-green-500" id="stat-comments">0</p></div>
             </div>
 
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-4 rounded-xl shadow flex flex-col items-center">
-                    <h3 class="text-lg font-bold mb-2">類別統計圖</h3>
-                    <div class="w-full"><canvas id="jokesChart"></canvas></div>
+                    <h3 class="text-lg font-bold mb-2" id="leaderboard-title">各類別笑話數量分佈</h3>
+                    <div class="w-full relative" style="height: 300px;"><canvas id="leaderboardChart"></canvas></div>
                 </div>
-                <div class="bg-white p-4 rounded-xl shadow h-96 flex flex-col">
-                    <h3 class="text-lg font-bold mb-4 border-b pb-2">更新紀錄</h3>
+                <div class="bg-white p-4 rounded-xl shadow h-[360px] flex flex-col">
+                    <h3 class="text-lg font-bold mb-4 border-b pb-2">系統更新紀錄</h3>
                     <ul id="update-logs" class="space-y-3 text-sm overflow-y-auto flex-grow pr-2"></ul>
                 </div>
             </div>
@@ -258,10 +273,9 @@
         };
         
         // 請將此處改為你在後台建立的唯一「管理員信箱」
-        const ADMIN_EMAIL = "chenwei.c0508@gmail.com";
+        const ADMIN_EMAIL = "chenwei.c0508@gmail.com"; 
 
-        let db = null;
-        let auth = null;
+        let db = null; let auth = null;
         const useFirebase = firebaseConfig.apiKey !== "";
         let isAdmin = false; 
 
@@ -270,8 +284,7 @@
 
         if (useFirebase) {
             firebase.initializeApp(firebaseConfig);
-            db = firebase.database();
-            auth = firebase.auth();
+            db = firebase.database(); auth = firebase.auth();
             const visitorRef = db.ref('dailyVisitors/' + todayStr);
             
             auth.onAuthStateChanged(user => {
@@ -280,25 +293,17 @@
 
                 if(user) {
                     isAdmin = (user.email === ADMIN_EMAIL); 
-                    navBtn.innerText = '登出';
-                    navBtn.title = user.displayName || user.email;
-
+                    navBtn.innerText = '登出'; navBtn.title = user.displayName || user.email;
                     if (isAdmin) {
-                        statusAdmin.innerText = "(管理員已登入 🟢)";
-                        statusAdmin.className = "text-sm font-normal text-green-500 ml-2";
+                        statusAdmin.innerText = "(管理員已登入 🟢)"; statusAdmin.className = "text-sm font-normal text-green-500 ml-2";
                     } else {
-                        statusAdmin.innerText = "(一般會員登入中 🟡)";
-                        statusAdmin.className = "text-sm font-normal text-yellow-500 ml-2";
+                        statusAdmin.innerText = "(一般會員登入中 🟡)"; statusAdmin.className = "text-sm font-normal text-yellow-500 ml-2";
                     }
                 } else {
                     isAdmin = false;
-                    navBtn.innerText = '👤';
-                    navBtn.title = '會員登入';
-                    statusAdmin.innerText = "(訪客模式 🔴)";
-                    statusAdmin.className = "text-sm font-normal text-red-500 ml-2";
-                    
+                    navBtn.innerText = '👤'; navBtn.title = '會員登入';
+                    statusAdmin.innerText = "(訪客模式 🔴)"; statusAdmin.className = "text-sm font-normal text-red-500 ml-2";
                     if(!document.getElementById('view-admin').classList.contains('hidden')) navigate('home');
-                    
                     if (localStorage.getItem('visited_date') !== todayStr) {
                         visitorRef.transaction(current => (current || 0) + 1, (error, committed) => {
                             if (committed) localStorage.setItem('visited_date', todayStr);
@@ -306,15 +311,12 @@
                     }
                 }
             });
-
-            visitorRef.on('value', snap => {
-                document.getElementById('visitor-count').innerText = snap.val() || 0;
-            });
+            visitorRef.on('value', snap => { document.getElementById('visitor-count').innerText = snap.val() || 0; });
         }
 
         const defaultJokes = [
-            { id: Date.now(), category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)" },
-            { id: Date.now()+1, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見" }
+            { id: Date.now(), category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)", source: "網路" },
+            { id: Date.now()+1, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見", source: "網路" }
         ];
 
         let jokes = JSON.parse(localStorage.getItem('jokesDB')) || defaultJokes;
@@ -342,9 +344,7 @@
                 db.ref('appData').on('value', snapshot => {
                     const data = snapshot.val();
                     if (data) {
-                        jokes = data.jokes || [];
-                        categories = data.categories || [];
-                        updateLogs = data.logs || [];
+                        jokes = data.jokes || []; categories = data.categories || []; updateLogs = data.logs || [];
                         localStorage.setItem('jokesDB', JSON.stringify(jokes));
                         localStorage.setItem('categoriesDB', JSON.stringify(categories));
                         localStorage.setItem('logsDB', JSON.stringify(updateLogs));
@@ -352,49 +352,35 @@
                     renderHome(); 
                     if(!document.getElementById('view-admin').classList.contains('hidden') && isAdmin) renderAdmin();
                     if(!document.getElementById('view-stats').classList.contains('hidden')) renderStats();
-                    
-                    if(!document.getElementById('view-joke').classList.contains('hidden') && currentMode === 'flashcard') {
-                        updateCardDisplay(true);
-                    }
+                    if(!document.getElementById('view-joke').classList.contains('hidden') && currentMode === 'flashcard') updateCardDisplay(true);
                 });
             } else {
                 if (localStorage.getItem('visited_date') !== todayStr) {
                     let v = parseInt(localStorage.getItem('localDaily_' + todayStr) || '0') + 1;
-                    localStorage.setItem('localDaily_' + todayStr, v);
-                    localStorage.setItem('visited_date', todayStr);
+                    localStorage.setItem('localDaily_' + todayStr, v); localStorage.setItem('visited_date', todayStr);
                 }
                 document.getElementById('visitor-count').innerText = localStorage.getItem('localDaily_' + todayStr) || 0;
                 renderHome();
             }
         };
 
-        // 核心存檔邏輯，加入錯誤捕捉與提示
         function saveData() {
             localStorage.setItem('jokesDB', JSON.stringify(jokes));
             localStorage.setItem('categoriesDB', JSON.stringify(categories));
             localStorage.setItem('logsDB', JSON.stringify(updateLogs));
-
             if (useFirebase && db && auth.currentUser) {
-                db.ref('appData').set({ jokes: jokes, categories: categories, logs: updateLogs })
-                  .catch(err => {
-                      console.error("寫入失敗", err);
-                      alert(`寫入雲端失敗！\n錯誤原因：${err.message}\n(請確認 Firebase 的 Security Rules 是否有開放 ".write": "auth != null")`);
+                db.ref('appData').set({ jokes: jokes, categories: categories, logs: updateLogs }).catch(err => {
+                      alert(`寫入雲端失敗！\n錯誤原因：${err.message}`);
                   });
             }
         }
         
-        // 後台強制上傳按鈕 (將本機的資料蓋過雲端)
         function forceSyncCloud() {
             if(confirm("即將把本機的資料強制覆蓋到雲端！\n如果你才剛匯入 CSV，請點擊確定同步。")) {
-                addLog("管理員強制執行了雲端資料覆蓋同步。");
-                saveData();
-                alert("已發送同步請求！若沒跳出權限錯誤，即代表同步成功。");
+                addLog("管理員強制執行了雲端資料覆蓋同步。"); saveData(); alert("已發送同步請求！");
             }
         }
 
-        // ==========================================
-        // 介面與功能邏輯
-        // ==========================================
         function navigate(view) {
             document.querySelectorAll('.view-section').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex'); });
             const target = document.getElementById(`view-${view}`);
@@ -405,102 +391,94 @@
             if (view === 'stats') renderStats();
         }
 
-        // 4. 展開式搜尋框邏輯
-        function toggleSearch() {
+        // 1. 搜尋列動畫與點擊外部關閉
+        function toggleSearch(event) {
+            if (event) event.stopPropagation(); // 防止點擊按鈕時觸發外層關閉事件
             const container = document.getElementById('search-bar-container');
-            const title = document.getElementById('main-title');
             const btn = document.getElementById('btn-toggle-search');
             
-            if (container.classList.contains('hidden')) {
-                container.classList.remove('hidden');
-                title.classList.add('hidden'); // 隱藏標題騰出空間
-                btn.innerText = '✖️';
-                btn.classList.remove('font-bold');
+            if (container.classList.contains('w-0')) {
+                container.classList.remove('w-0', 'opacity-0');
+                container.classList.add('w-48', 'sm:w-64', 'opacity-100'); 
+                btn.innerText = '✖️'; btn.classList.remove('font-bold');
                 document.getElementById('header-search-input').focus();
             } else {
-                container.classList.add('hidden');
-                title.classList.remove('hidden'); // 恢復標題
-                btn.innerText = '🔍';
-                btn.classList.add('font-bold');
+                container.classList.add('w-0', 'opacity-0');
+                container.classList.remove('w-48', 'sm:w-64', 'opacity-100'); 
+                btn.innerText = '🔍'; btn.classList.add('font-bold');
                 document.getElementById('header-search-input').value = '';
             }
         }
 
+        document.addEventListener('click', function(event) {
+            const container = document.getElementById('search-bar-container');
+            const btn = document.getElementById('btn-toggle-search');
+            // 如果搜尋框是展開的，且點擊的目標不在搜尋框或按鈕內，就關閉它
+            if (!container.classList.contains('w-0') && !container.contains(event.target) && event.target !== btn) {
+                toggleSearch();
+            }
+        });
+
         function executeSearch() {
             const kw = document.getElementById('header-search-input').value.trim().toLowerCase();
             if(!kw) return;
-            
             currentCategoryJokes = jokes.filter(j => j.question.toLowerCase().includes(kw) || j.answer.toLowerCase().includes(kw));
             if (currentCategoryJokes.length === 0) { alert(`找不到包含「${kw}」的笑話喔！`); return; }
-            
-            document.getElementById('joke-category-title').innerText = `搜尋結果：${kw} (共 ${currentCategoryJokes.length} 則)`;
+            document.getElementById('joke-category-title').innerText = `🔍 搜尋結果：${kw}`;
             currentIndex = 0; setJokeMode('list'); navigate('joke');
-            toggleSearch(); // 搜完收起
+            toggleSearch(); 
         }
 
-        // 原本 prompt 版本的搜尋改叫 searchJokes (若網頁哪邊還有按鈕的話備用)
         function searchJokes() { toggleSearch(); }
 
         function renderHome() {
-            const listEl = document.getElementById('category-list');
-            listEl.innerHTML = '';
+            const specialListEl = document.getElementById('special-list');
+            const categoryListEl = document.getElementById('category-list');
+            specialListEl.innerHTML = ''; categoryListEl.innerHTML = '';
+            
             const usedCategories = [...new Set(jokes.map(j => j.category))];
             let needsSave = false;
             usedCategories.forEach(c => { if(!categories.includes(c)) { categories.push(c); needsSave = true; } });
             if(needsSave && (!useFirebase || (auth && auth.currentUser))) saveData();
 
-            // 1. 新增我的收藏按鈕
             const specialCats = [
                 { name: '❤️ 我的收藏', action: () => openJokeView('我的收藏') },
                 { name: '🎲 隨機漫遊', action: () => openJokeView('隨機') },
                 { name: '📅 每日精選', action: () => openJokeView('每日笑話') }
             ];
-            
             specialCats.forEach(cat => {
                 const btn = document.createElement('button');
-                btn.className = "bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 font-bold text-lg border-2 border-transparent hover:border-yellow-400 text-gray-700";
-                btn.innerText = cat.name; btn.onclick = cat.action; listEl.appendChild(btn);
+                btn.className = "bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 font-bold text-gray-700 text-center border-2 border-transparent hover:border-yellow-400";
+                btn.innerText = cat.name; btn.onclick = cat.action; specialListEl.appendChild(btn);
             });
 
             categories.forEach(cat => {
                 const count = jokes.filter(j => j.category === cat).length;
                 const btn = document.createElement('button');
-                btn.className = "bg-white p-6 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 border-2 border-transparent hover:border-yellow-400 flex flex-col items-center justify-center";
-                btn.innerHTML = `<span class="font-bold text-lg text-gray-700">${cat}</span><span class="text-xs text-gray-400 mt-1">${count} 則</span>`;
-                btn.onclick = () => openJokeView(cat); listEl.appendChild(btn);
+                btn.className = "bg-white p-5 rounded-xl shadow-sm hover:shadow-md transition transform hover:-translate-y-1 border-2 border-transparent hover:border-yellow-400 flex flex-col items-center justify-center";
+                btn.innerHTML = `<span class="font-bold text-gray-700">${cat}</span><span class="text-xs text-gray-400 mt-1">${count} 則</span>`;
+                btn.onclick = () => openJokeView(cat); categoryListEl.appendChild(btn);
             });
         }
 
         function openJokeView(category) {
             document.getElementById('flashcard').classList.remove('flipped');
-            
-            // 處理「我的收藏」過濾邏輯
             if (category === '我的收藏') {
                 if (!auth || !auth.currentUser) {
-                    alert("請先登入會員才能查看您的專屬收藏喔！");
-                    document.getElementById('login-modal').classList.remove('hidden');
-                    return;
+                    alert("請先登入會員才能查看您的專屬收藏喔！"); document.getElementById('login-modal').classList.remove('hidden'); return;
                 }
                 const uid = auth.currentUser.uid;
                 currentCategoryJokes = jokes.filter(j => j.favs && j.favs[uid]);
-                if (currentCategoryJokes.length === 0) {
-                    alert("您還沒有收藏任何笑話喔！趕快去逛逛並按下愛心吧！");
-                    return;
-                }
+                if (currentCategoryJokes.length === 0) { alert("您還沒有收藏任何笑話喔！趕快去逛逛並按下愛心吧！"); return; }
                 document.getElementById('joke-category-title').innerText = "❤️ 我的收藏";
-            } 
-            else if (category === '隨機') {
-                currentCategoryJokes = [...jokes].sort(() => 0.5 - Math.random());
-                document.getElementById('joke-category-title').innerText = "類別：隨機漫遊";
+            } else if (category === '隨機') {
+                currentCategoryJokes = [...jokes].sort(() => 0.5 - Math.random()); document.getElementById('joke-category-title').innerText = "🎲 隨機漫遊";
             } else if (category === '每日笑話') {
                 const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
-                currentCategoryJokes = jokes.length > 0 ? [jokes[dayOfYear % jokes.length]] : [];
-                document.getElementById('joke-category-title').innerText = "類別：每日精選";
+                currentCategoryJokes = jokes.length > 0 ? [jokes[dayOfYear % jokes.length]] : []; document.getElementById('joke-category-title').innerText = "📅 每日精選";
             } else {
-                currentCategoryJokes = jokes.filter(j => j.category === category);
-                document.getElementById('joke-category-title').innerText = `類別：${category}`;
+                currentCategoryJokes = jokes.filter(j => j.category === category); document.getElementById('joke-category-title').innerText = `📂 ${category}`;
             }
-            
             if (currentCategoryJokes.length === 0) { alert(`「${category}」目前還沒有笑話喔！`); return; }
             currentIndex = 0; setJokeMode('flashcard'); navigate('joke');
         }
@@ -529,13 +507,9 @@
 
         function updateCardDisplay(instant = false) {
             if(currentCategoryJokes.length === 0) return;
-            const center = document.getElementById('flashcard');
-            const left = document.getElementById('card-left');
-            const right = document.getElementById('card-right');
+            const center = document.getElementById('flashcard'); const left = document.getElementById('card-left'); const right = document.getElementById('card-right');
 
-            if (instant) {
-                center.classList.add('no-transition'); left.classList.add('no-transition'); right.classList.add('no-transition');
-            }
+            if (instant) { center.classList.add('no-transition'); left.classList.add('no-transition'); right.classList.add('no-transition'); }
 
             center.className = 'card-base pos-center cursor-pointer perspective-1000' + (instant ? ' no-transition' : '');
             left.className = 'card-base pos-left cursor-pointer' + (instant ? ' no-transition' : '');
@@ -548,21 +522,36 @@
             const prevJokeObj = currentCategoryJokes[(currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length];
             const nextJokeObj = currentCategoryJokes[(currentIndex + 1) % currentCategoryJokes.length];
 
-            document.getElementById('joke-question').innerText = currentJoke.question;
-            document.getElementById('joke-answer').innerText = currentJoke.answer;
-            document.getElementById('joke-q-left').innerText = prevJokeObj.question;
-            document.getElementById('joke-q-right').innerText = nextJokeObj.question;
+            document.getElementById('joke-question').innerText = currentJoke.question; document.getElementById('joke-answer').innerText = currentJoke.answer;
+            document.getElementById('joke-q-left').innerText = prevJokeObj.question; document.getElementById('joke-q-right').innerText = nextJokeObj.question;
+
+            const applySource = (jokeObj, prefix) => {
+                const el = document.getElementById(`joke-source-${prefix}`);
+                if (el) {
+                    if (jokeObj.source && jokeObj.source.trim() !== '') { el.innerText = `✏️ ${jokeObj.source}`; el.classList.remove('hidden'); } 
+                    else { el.classList.add('hidden'); }
+                }
+            };
+            applySource(currentJoke, 'center'); applySource(currentJoke, 'center-back'); applySource(prevJokeObj, 'left'); applySource(nextJokeObj, 'right');
+
+            const titleText = document.getElementById('joke-category-title').innerText;
+            const isMixedMode = ['❤️ 我的收藏', '🎲 隨機漫遊', '📅 每日精選'].includes(titleText) || titleText.startsWith('🔍 搜尋結果');
+            
+            const applyCategoryBadge = (jokeObj, prefix) => {
+                const el = document.getElementById(`joke-cat-${prefix}`);
+                if (el) {
+                    if (isMixedMode) { el.innerText = jokeObj.category; el.classList.remove('hidden'); } 
+                    else { el.classList.add('hidden'); }
+                }
+            };
+            applyCategoryBadge(currentJoke, 'center'); applyCategoryBadge(currentJoke, 'center-back'); applyCategoryBadge(prevJokeObj, 'left'); applyCategoryBadge(nextJokeObj, 'right');
 
             const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
-            
             const likeCount = currentJoke.likes ? Object.keys(currentJoke.likes).length : 0;
             const dislikeCount = currentJoke.dislikes ? Object.keys(currentJoke.dislikes).length : 0;
             const favCount = currentJoke.favs ? Object.keys(currentJoke.favs).length : 0;
             
-            document.getElementById('count-like').innerText = likeCount;
-            document.getElementById('count-dislike').innerText = dislikeCount;
-            document.getElementById('count-fav').innerText = favCount;
-
+            document.getElementById('count-like').innerText = likeCount; document.getElementById('count-dislike').innerText = dislikeCount; document.getElementById('count-fav').innerText = favCount;
             document.getElementById('btn-like').className = (uid && currentJoke.likes && currentJoke.likes[uid]) ? "flex items-center gap-1 text-blue-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-blue-500 transition";
             document.getElementById('btn-dislike').className = (uid && currentJoke.dislikes && currentJoke.dislikes[uid]) ? "flex items-center gap-1 text-red-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-red-500 transition";
             document.getElementById('btn-fav').className = (uid && currentJoke.favs && currentJoke.favs[uid]) ? "flex items-center gap-1 text-pink-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-pink-500 transition";
@@ -575,102 +564,71 @@
                 commentListEl.innerHTML = '<p class="text-gray-400 text-center py-2">目前還沒有人留言喔，來搶頭香吧！</p>';
             } else {
                 comments.forEach(c => {
-                    const cDiv = document.createElement('div');
-                    cDiv.className = "bg-gray-50 p-2 rounded";
+                    const cDiv = document.createElement('div'); cDiv.className = "bg-gray-50 p-2 rounded";
                     cDiv.innerHTML = `<p class="font-bold text-gray-700 text-xs">${c.name} <span class="text-gray-400 font-normal ml-2">${c.time}</span></p><p class="text-gray-800 mt-1">${c.text}</p>`;
                     commentListEl.appendChild(cDiv);
                 });
             }
 
-            if (instant) {
-                void center.offsetWidth;
-                center.classList.remove('no-transition'); left.classList.remove('no-transition'); right.classList.remove('no-transition');
-            }
+            if (instant) { void center.offsetWidth; center.classList.remove('no-transition'); left.classList.remove('no-transition'); right.classList.remove('no-transition'); }
         }
 
         function toggleInteract(type) {
-            if (!useFirebase || !auth.currentUser) {
-                document.getElementById('login-modal').classList.remove('hidden'); return;
-            }
-            
-            const uid = auth.currentUser.uid;
-            const currentJokeId = currentCategoryJokes[currentIndex].id;
-            const jIdx = jokes.findIndex(j => j.id === currentJokeId);
-            
+            if (!useFirebase || !auth.currentUser) { document.getElementById('login-modal').classList.remove('hidden'); return; }
+            const uid = auth.currentUser.uid; const currentJokeId = currentCategoryJokes[currentIndex].id; const jIdx = jokes.findIndex(j => j.id === currentJokeId);
             if (!jokes[jIdx][type]) jokes[jIdx][type] = {};
             
-            if (jokes[jIdx][type][uid]) {
-                delete jokes[jIdx][type][uid]; 
-            } else {
+            if (jokes[jIdx][type][uid]) { delete jokes[jIdx][type][uid]; } 
+            else {
                 jokes[jIdx][type][uid] = true; 
                 if (type === 'likes' && jokes[jIdx].dislikes && jokes[jIdx].dislikes[uid]) delete jokes[jIdx].dislikes[uid];
                 if (type === 'dislikes' && jokes[jIdx].likes && jokes[jIdx].likes[uid]) delete jokes[jIdx].likes[uid];
             }
-            
-            currentCategoryJokes[currentIndex] = jokes[jIdx];
-            saveData();
-            updateCardDisplay(true);
+            currentCategoryJokes[currentIndex] = jokes[jIdx]; saveData(); updateCardDisplay(true);
         }
 
         function addComment() {
-            if (!useFirebase || !auth.currentUser) {
-                document.getElementById('login-modal').classList.remove('hidden'); return;
-            }
-            const inputEl = document.getElementById('comment-input');
-            const text = inputEl.value.trim();
-            if (!text) return;
-
-            const uid = auth.currentUser.uid;
-            const name = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
-            const currentJokeId = currentCategoryJokes[currentIndex].id;
-            const jIdx = jokes.findIndex(j => j.id === currentJokeId);
+            if (!useFirebase || !auth.currentUser) { document.getElementById('login-modal').classList.remove('hidden'); return; }
+            const inputEl = document.getElementById('comment-input'); const text = inputEl.value.trim(); if (!text) return;
+            const uid = auth.currentUser.uid; const name = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+            const currentJokeId = currentCategoryJokes[currentIndex].id; const jIdx = jokes.findIndex(j => j.id === currentJokeId);
 
             if (!jokes[jIdx].comments) jokes[jIdx].comments = [];
             jokes[jIdx].comments.push({ uid, name, text, time: new Date().toLocaleString() });
-
-            inputEl.value = '';
-            currentCategoryJokes[currentIndex] = jokes[jIdx];
-            saveData();
-            updateCardDisplay(true);
+            inputEl.value = ''; currentCategoryJokes[currentIndex] = jokes[jIdx]; saveData(); updateCardDisplay(true);
         }
 
         function renderListDisplay() {
-            const listContainer = document.getElementById('list-container');
-            listContainer.innerHTML = '';
+            const listContainer = document.getElementById('list-container'); listContainer.innerHTML = '';
+            const titleText = document.getElementById('joke-category-title').innerText;
+            const isMixedMode = ['❤️ 我的收藏', '🎲 隨機漫遊', '📅 每日精選'].includes(titleText) || titleText.startsWith('🔍 搜尋結果');
+
             currentCategoryJokes.forEach(joke => {
-                const lc = joke.likes ? Object.keys(joke.likes).length : 0;
-                const fc = joke.favs ? Object.keys(joke.favs).length : 0;
-                const cc = joke.comments ? joke.comments.length : 0;
-                
-                const card = document.createElement('div');
-                card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3";
+                const lc = joke.likes ? Object.keys(joke.likes).length : 0; const fc = joke.favs ? Object.keys(joke.favs).length : 0; const cc = joke.comments ? joke.comments.length : 0;
+                let tagsHtml = '';
+                if (isMixedMode) tagsHtml += `<span class="bg-gray-100 text-gray-500 px-2 py-0.5 rounded text-xs">${joke.category}</span> `;
+                if (joke.source && joke.source.trim() !== '') tagsHtml += `<span class="bg-gray-50 text-gray-400 px-2 py-0.5 rounded text-xs border border-gray-100">✏️ ${joke.source}</span>`;
+
+                const card = document.createElement('div'); card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3 relative";
                 card.innerHTML = `
                     <div class="flex items-start gap-2"><span class="bg-yellow-100 text-yellow-600 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">Q</span><p class="font-semibold text-lg text-gray-800">${joke.question}</p></div>
                     <div class="flex items-start gap-2 border-t pt-3"><span class="bg-gray-100 text-gray-500 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">A</span><p class="font-medium text-gray-600">${joke.answer}</p></div>
-                    <div class="flex justify-end gap-3 text-xs text-gray-400 mt-2 border-t pt-2 border-gray-50"><span>👍 ${lc}</span><span>❤️ ${fc}</span><span>💬 ${cc}</span></div>`;
+                    <div class="flex justify-between items-center text-xs text-gray-400 mt-2 border-t pt-2 border-gray-50"><div>${tagsHtml}</div><div class="flex gap-3"><span>👍 ${lc}</span><span>❤️ ${fc}</span><span>💬 ${cc}</span></div></div>`;
                 listContainer.appendChild(card);
             });
         }
 
         function toggleCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
-
         function nextJoke() { 
-            if(isAnimating || currentCategoryJokes.length <= 1) return;
-            isAnimating = true;
+            if(isAnimating || currentCategoryJokes.length <= 1) return; isAnimating = true;
             const center = document.getElementById('flashcard'); const right = document.getElementById('card-right');
-            center.classList.remove('pos-center'); center.classList.add('pos-left'); 
-            right.classList.remove('pos-right'); right.classList.add('pos-center'); 
-            center.classList.remove('flipped');
+            center.classList.remove('pos-center'); center.classList.add('pos-left'); right.classList.remove('pos-right'); right.classList.add('pos-center'); center.classList.remove('flipped');
             setTimeout(() => { currentIndex = (currentIndex + 1) % currentCategoryJokes.length; updateCardDisplay(true); isAnimating = false; }, 300);
         }
-
         function prevJoke() { 
-            if(isAnimating || currentCategoryJokes.length <= 1) return;
-            isAnimating = true;
+            if(isAnimating || currentCategoryJokes.length <= 1) return; isAnimating = true;
             const center = document.getElementById('flashcard'); const left = document.getElementById('card-left');
-            center.classList.remove('pos-center'); center.classList.add('pos-right'); 
-            left.classList.remove('pos-left'); left.classList.add('pos-center'); 
-            center.classList.remove('flipped');
+            center.classList.remove('pos-center'); center.classList.add('pos-right'); left.classList.remove('pos-left'); left.classList.add('pos-center'); center.classList.remove('flipped');
             setTimeout(() => { currentIndex = (currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length; updateCardDisplay(true); isAnimating = false; }, 300);
         }
 
@@ -679,263 +637,153 @@
         flashcardContainer.addEventListener('touchstart', e => { touchStartX = e.changedTouches[0].clientX; }, {passive: true});
         flashcardContainer.addEventListener('touchend', e => {
             touchEndX = e.changedTouches[0].clientX;
-            if(currentMode === 'flashcard') {
-                const threshold = 50; 
-                if (touchStartX - touchEndX > threshold) nextJoke(); 
-                if (touchEndX - touchStartX > threshold) prevJoke(); 
-            }
+            if(currentMode === 'flashcard') { const threshold = 50; if (touchStartX - touchEndX > threshold) nextJoke(); if (touchEndX - touchStartX > threshold) prevJoke(); }
         }, {passive: true});
 
-        function handleAuthClick() {
-            if (auth && auth.currentUser) {
-                if(confirm("確定要登出嗎？")) userLogout();
-            } else {
-                document.getElementById('login-modal').classList.remove('hidden');
-            }
-        }
-
+        function handleAuthClick() { if (auth && auth.currentUser) { if(confirm("確定要登出嗎？")) userLogout(); } else { document.getElementById('login-modal').classList.remove('hidden'); } }
         function checkAdminAccess() {
             if (useFirebase) {
-                if (auth.currentUser && isAdmin) {
-                    navigate('admin'); 
-                } else if (auth.currentUser && !isAdmin) {
-                    alert("權限不足！請使用「管理員信箱」登入才能進入後台。");
-                } else {
-                    document.getElementById('login-modal').classList.remove('hidden'); 
-                }
-            } else {
-                const pwd = prompt("您尚未設定 Firebase。單機測試密碼為 wei58：");
-                if (pwd === "wei58") { isAdmin = true; navigate('admin'); } else if (pwd !== null) alert("密碼錯誤！");
-            }
+                if (auth.currentUser && isAdmin) { navigate('admin'); } else if (auth.currentUser && !isAdmin) { alert("權限不足！請使用「管理員信箱」登入。"); } else { document.getElementById('login-modal').classList.remove('hidden'); }
+            } else { const pwd = prompt("您尚未設定 Firebase。單機測試密碼為 wei58："); if (pwd === "wei58") { isAdmin = true; navigate('admin'); } else if (pwd !== null) alert("密碼錯誤！"); }
         }
-
-        function closeLoginModal() {
-            document.getElementById('login-modal').classList.add('hidden');
-            document.getElementById('admin-email').value = ''; document.getElementById('admin-pwd').value = '';
-        }
-
+        function closeLoginModal() { document.getElementById('login-modal').classList.add('hidden'); document.getElementById('admin-email').value = ''; document.getElementById('admin-pwd').value = ''; }
         function googleLogin() {
             if (!useFirebase) { alert("請先完成 Firebase 設定！"); return; }
             const provider = new firebase.auth.GoogleAuthProvider();
-            auth.signInWithPopup(provider).then((result) => {
-                closeLoginModal();
-                alert(`歡迎，${result.user.displayName}！您現在可以對笑話按讚與留言了。`);
-            }).catch((error) => {
-                alert("Google 登入失敗：" + error.message);
-            });
+            auth.signInWithPopup(provider).then((result) => { closeLoginModal(); alert(`歡迎，${result.user.displayName}！`); }).catch((error) => { alert("Google 登入失敗：" + error.message); });
         }
-
         function adminLogin() {
             const email = document.getElementById('admin-email').value; const pwd = document.getElementById('admin-pwd').value;
             if(!email || !pwd) { alert("請輸入信箱與密碼！"); return; }
-            auth.signInWithEmailAndPassword(email, pwd).then(() => { 
-                closeLoginModal(); 
-                if(email === ADMIN_EMAIL) navigate('admin'); 
-                else alert("已登入一般會員。若需進入後台請使用管理員信箱。");
-            }).catch(() => alert("登入失敗！請檢查信箱與密碼。"));
+            auth.signInWithEmailAndPassword(email, pwd).then(() => { closeLoginModal(); if(email === ADMIN_EMAIL) navigate('admin'); else alert("已登入一般會員。"); }).catch(() => alert("登入失敗！請檢查信箱與密碼。"));
         }
-
-        function userLogout() {
-            if (useFirebase && auth.currentUser) auth.signOut().then(() => alert("已成功登出！")); else navigate('home');
-        }
-
-        function addLog(msg) {
-            updateLogs.unshift({ time: new Date().toLocaleString(), msg: msg });
-            if (updateLogs.length > 50) updateLogs.pop(); 
-        }
+        function userLogout() { if (useFirebase && auth.currentUser) auth.signOut().then(() => alert("已成功登出！")); else navigate('home'); }
+        function addLog(msg) { updateLogs.unshift({ time: new Date().toLocaleString(), msg: msg }); if (updateLogs.length > 50) updateLogs.pop();  }
 
         function renderAdmin() {
             if (!isAdmin && useFirebase) { navigate('home'); return; } 
-
-            const categoryListContainer = document.getElementById('admin-category-list');
-            categoryListContainer.innerHTML = '';
+            const categoryListContainer = document.getElementById('admin-category-list'); categoryListContainer.innerHTML = '';
             categories.forEach((cat, index) => {
-                const badge = document.createElement('div');
-                badge.className = "flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm shadow-sm border border-purple-200";
-                badge.innerHTML = `<span contenteditable="true" onblur="updateCategoryName(${index}, this)" class="outline-none focus:bg-white focus:ring-2 focus:ring-purple-300 px-1 rounded cursor-text truncate max-w-[150px]">${cat}</span>
-                                   <button onclick="deleteCategory(${index})" class="ml-2 text-purple-400 hover:text-red-500 font-bold leading-none text-lg transition-colors">&times;</button>`;
+                const badge = document.createElement('div'); badge.className = "flex items-center bg-purple-100 text-purple-800 px-3 py-1 rounded-full text-sm shadow-sm border border-purple-200";
+                badge.innerHTML = `<span contenteditable="true" onblur="updateCategoryName(${index}, this)" class="outline-none focus:bg-white focus:ring-2 focus:ring-purple-300 px-1 rounded cursor-text truncate max-w-[150px]">${cat}</span><button onclick="deleteCategory(${index})" class="ml-2 text-purple-400 hover:text-red-500 font-bold leading-none text-lg transition-colors">&times;</button>`;
                 categoryListContainer.appendChild(badge);
             });
 
-            const selectEl = document.getElementById('add-category-select');
-            selectEl.innerHTML = '<option value="" disabled selected>請選擇類別...</option>';
+            const selectEl = document.getElementById('add-category-select'); selectEl.innerHTML = '<option value="" disabled selected>請選擇類別...</option>';
             categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; selectEl.appendChild(opt); });
 
-            const filterEl = document.getElementById('admin-filter-category');
-            const currentFilter = filterEl ? filterEl.value : 'all';
+            const filterEl = document.getElementById('admin-filter-category'); const currentFilter = filterEl ? filterEl.value : 'all';
             if(filterEl) {
                 filterEl.innerHTML = '<option value="all">顯示全部類別</option>';
-                categories.forEach(cat => {
-                    const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat;
-                    if(cat === currentFilter) opt.selected = true;
-                    filterEl.appendChild(opt);
-                });
+                categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; if(cat === currentFilter) opt.selected = true; filterEl.appendChild(opt); });
             }
 
             const searchVal = document.getElementById('admin-search-input') ? document.getElementById('admin-search-input').value.toLowerCase() : '';
             const sortVal = document.getElementById('admin-sort-select') ? document.getElementById('admin-sort-select').value : 'newest';
-
             let mappedJokes = jokes.map((j, idx) => ({ ...j, originalIndex: idx }));
 
             if (currentFilter !== 'all') mappedJokes = mappedJokes.filter(j => j.category === currentFilter);
-            if (searchVal) mappedJokes = mappedJokes.filter(j => j.question.toLowerCase().includes(searchVal) || j.answer.toLowerCase().includes(searchVal));
+            if (searchVal) mappedJokes = mappedJokes.filter(j => j.question.toLowerCase().includes(searchVal) || j.answer.toLowerCase().includes(searchVal) || (j.source && j.source.toLowerCase().includes(searchVal)));
 
-            if (sortVal === 'newest') {
-                mappedJokes.sort((a, b) => b.id - a.id);
-            } else if (sortVal === 'oldest') {
-                mappedJokes.sort((a, b) => a.id - b.id);
-            } else if (sortVal === 'most-likes') {
-                mappedJokes.sort((a, b) => (b.likes ? Object.keys(b.likes).length : 0) - (a.likes ? Object.keys(a.likes).length : 0));
-            } else if (sortVal === 'most-dislikes') {
-                mappedJokes.sort((a, b) => (b.dislikes ? Object.keys(b.dislikes).length : 0) - (a.dislikes ? Object.keys(a.dislikes).length : 0));
-            } else if (sortVal === 'most-favs') {
-                mappedJokes.sort((a, b) => (b.favs ? Object.keys(b.favs).length : 0) - (a.favs ? Object.keys(a.favs).length : 0));
-            }
+            if (sortVal === 'newest') mappedJokes.sort((a, b) => b.id - a.id);
+            else if (sortVal === 'oldest') mappedJokes.sort((a, b) => a.id - b.id);
+            else if (sortVal === 'most-likes') mappedJokes.sort((a, b) => (b.likes ? Object.keys(b.likes).length : 0) - (a.likes ? Object.keys(a.likes).length : 0));
+            else if (sortVal === 'most-dislikes') mappedJokes.sort((a, b) => (b.dislikes ? Object.keys(b.dislikes).length : 0) - (a.dislikes ? Object.keys(a.dislikes).length : 0));
+            else if (sortVal === 'most-favs') mappedJokes.sort((a, b) => (b.favs ? Object.keys(b.favs).length : 0) - (a.favs ? Object.keys(a.favs).length : 0));
 
-            const tbody = document.getElementById('admin-table-body');
-            tbody.innerHTML = '';
+            const tbody = document.getElementById('admin-table-body'); tbody.innerHTML = '';
             mappedJokes.forEach(j => {
-                const origIdx = j.originalIndex;
-                const catOptions = categories.map(c => `<option value="${c}" ${c === j.category ? 'selected' : ''}>${c}</option>`).join('');
+                const origIdx = j.originalIndex; const catOptions = categories.map(c => `<option value="${c}" ${c === j.category ? 'selected' : ''}>${c}</option>`).join('');
+                const lc = j.likes ? Object.keys(j.likes).length : 0; const dc = j.dislikes ? Object.keys(j.dislikes).length : 0; const fc = j.favs ? Object.keys(j.favs).length : 0;
+                const sourceText = j.source || '';
                 
-                const lc = j.likes ? Object.keys(j.likes).length : 0;
-                const dc = j.dislikes ? Object.keys(j.dislikes).length : 0;
-                const fc = j.favs ? Object.keys(j.favs).length : 0;
-                
-                const tr = document.createElement('tr');
-                tr.className = "border-b hover:bg-gray-50 transition-colors";
+                const tr = document.createElement('tr'); tr.className = "border-b hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
                     <td class="p-2 border text-gray-700">
-                        <select onchange="updateJokeCategory(${origIdx}, this)" class="w-full bg-transparent outline-none focus:ring-2 focus:ring-yellow-300 rounded p-1 cursor-pointer border border-gray-200 hover:bg-white mb-1">
-                            ${catOptions}
-                        </select>
+                        <select onchange="updateJokeCategory(${origIdx}, this)" class="w-full bg-transparent outline-none focus:ring-2 focus:ring-yellow-300 rounded p-1 cursor-pointer border border-gray-200 hover:bg-white mb-1">${catOptions}</select>
                         <div class="text-[10px] text-gray-400 mt-1 flex gap-2"><span>👍 ${lc}</span><span>👎 ${dc}</span><span>❤️ ${fc}</span></div>
                     </td>
                     <td class="p-2 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'question', this)">${j.question}</td>
                     <td class="p-2 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'answer', this)">${j.answer}</td>
+                    <td class="p-2 border text-gray-500 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm text-xs" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'source', this)">${sourceText}</td>
                     <td class="p-2 border text-center whitespace-nowrap"><button onclick="deleteJoke(${origIdx})" class="text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">刪除</button></td>`;
                 tbody.appendChild(tr);
             });
         }
 
-        function updateJokeCategory(index, element) {
-            const newCat = element.value;
-            if (jokes[index].category !== newCat) { jokes[index].category = newCat; saveData(); renderAdmin(); }
-        }
-
+        function updateJokeCategory(index, element) { const newCat = element.value; if (jokes[index].category !== newCat) { jokes[index].category = newCat; saveData(); renderAdmin(); } }
         function updateCategoryName(index, element) {
-            const newName = element.innerText.trim(); const oldName = categories[index];
-            if (!newName) { element.innerText = oldName; return; }
+            const newName = element.innerText.trim(); const oldName = categories[index]; if (!newName) { element.innerText = oldName; return; }
             if (newName !== oldName) {
                 if (categories.includes(newName) && categories.indexOf(newName) !== index) { alert("此類別名稱已存在！"); element.innerText = oldName; return; }
                 categories[index] = newName; let affectedJokes = 0;
                 jokes.forEach(j => { if (j.category === oldName) { j.category = newName; affectedJokes++; } });
-                if (affectedJokes > 0) addLog(`將類別「${oldName}」重新命名為「${newName}」，共更新了 ${affectedJokes} 則笑話。`);
-                saveData(); renderAdmin();
+                if (affectedJokes > 0) addLog(`將類別「${oldName}」重新命名為「${newName}」。`); saveData(); renderAdmin();
             }
         }
-
         function deleteCategory(index) {
             const catName = categories[index]; const jokesInCat = jokes.filter(j => j.category === catName).length;
-            if (jokesInCat > 0 && !confirm(`「${catName}」類別底下還有 ${jokesInCat} 則笑話。確定要移除這個類別標籤嗎？`)) return;
-            if (jokesInCat === 0 && !confirm(`確定要刪除「${catName}」這個類別嗎？`)) return;
+            if (jokesInCat > 0 && !confirm(`「${catName}」底下還有 ${jokesInCat} 則笑話。確定要移除標籤嗎？`)) return;
+            if (jokesInCat === 0 && !confirm(`確定要刪除「${catName}」嗎？`)) return;
             categories.splice(index, 1); addLog(`移除了類別：「${catName}」。`); saveData(); renderAdmin();
         }
-
         function addNewCategory() {
             const newCat = document.getElementById('add-new-category-input').value.trim();
-            if (!newCat) { alert("請輸入類別名稱！"); return; }
-            if (categories.includes(newCat)) { alert("這個類別已經存在囉！"); return; }
+            if (!newCat) return; if (categories.includes(newCat)) { alert("這個類別已經存在囉！"); return; }
             categories.push(newCat); addLog(`新增了類別：「${newCat}」。`); saveData(); document.getElementById('add-new-category-input').value = ''; renderAdmin();
         }
-
         function addJoke() {
-            const category = document.getElementById('add-category-select').value;
-            const question = document.getElementById('add-question').value.trim();
-            const answer = document.getElementById('add-answer').value.trim();
-            if (!category || !question || !answer) { alert("請完整填寫！"); return; }
-            if (isDuplicate(question, answer)) { alert("這則笑話似乎已經存在囉（系統偵測到高度相似的內容）！"); return; }
-            jokes.push({ id: Date.now(), category, question, answer }); addLog(`新增一則「${category}」笑話。`); saveData();
-            document.getElementById('add-question').value = ''; document.getElementById('add-answer').value = ''; renderAdmin();
+            const category = document.getElementById('add-category-select').value; const question = document.getElementById('add-question').value.trim();
+            const answer = document.getElementById('add-answer').value.trim(); const source = document.getElementById('add-source').value.trim();
+            if (!category || !question || !answer) { alert("請填寫分類、問題與答案！"); return; }
+            if (isDuplicate(question, answer)) { alert("這則笑話似乎已經存在囉！"); return; }
+            jokes.push({ id: Date.now(), category, question, answer, source }); addLog(`新增一則「${category}」笑話。`); saveData();
+            document.getElementById('add-question').value = ''; document.getElementById('add-answer').value = ''; document.getElementById('add-source').value = '網路'; renderAdmin();
         }
-
         function updateJokeInline(index, field, element) {
-            const newValue = element.innerText.trim(); const oldValue = jokes[index][field];
-            if (!newValue) { element.innerText = oldValue; return; }
+            const newValue = element.innerText.trim(); const oldValue = jokes[index][field] || '';
+            if (!newValue && field !== 'source') { element.innerText = oldValue; return; }
             if (newValue !== oldValue) {
                 jokes[index][field] = newValue;
                 if (field === 'category' && !categories.includes(newValue)) { categories.push(newValue); addLog(`新增了新類別：「${newValue}」。`); }
                 saveData(); renderAdmin(); 
             }
         }
-
-        function deleteJoke(index) {
-            if (confirm("確定刪除這則笑話嗎？")) { const cat = jokes[index].category; jokes.splice(index, 1); addLog(`刪除一則「${cat}」笑話。`); saveData(); renderAdmin(); }
-        }
-
-        function clearAllData() {
-            if(confirm("警告：這將會清除所有資料！確定嗎？")) {
-                jokes = [...defaultJokes]; categories = [...new Set(defaultJokes.map(j => j.category))]; updateLogs = [{ time: new Date().toLocaleString(), msg: "系統重置。" }];
-                saveData(); renderAdmin();
-            }
-        }
+        function deleteJoke(index) { if (confirm("確定刪除這則笑話嗎？")) { jokes.splice(index, 1); addLog(`刪除一則笑話。`); saveData(); renderAdmin(); } }
+        function clearAllData() { if(confirm("警告：這將會清除所有資料！確定嗎？")) { jokes = [...defaultJokes]; categories = [...new Set(defaultJokes.map(j => j.category))]; updateLogs = [{ time: new Date().toLocaleString(), msg: "系統重置。" }]; saveData(); renderAdmin(); } }
 
         function importCSV() {
-            const fileInput = document.getElementById('csv-file'); const file = fileInput.files[0];
-            if (!file) { alert("請先選擇 CSV 檔案。"); return; }
+            const fileInput = document.getElementById('csv-file'); const file = fileInput.files[0]; if (!file) { alert("請先選擇 CSV 檔案。"); return; }
             const reader = new FileReader();
             reader.onload = function(e) {
-                const text = e.target.result;
-                const rows = text.split('\n'); 
-                let addedCount = 0; let skippedCount = 0; let addedCategories = new Set();
+                const text = e.target.result; const rows = text.split('\n'); let addedCount = 0; let skippedCount = 0; let addedCategories = new Set();
                 const re = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
-
                 rows.forEach(row => {
                     const cols = row.split(re).map(s => s.replace(/(^"|"$)/g, '').replace(/""/g, '"').trim());
                     if (cols.length >= 3) {
-                        const cat = cols[0], q = cols[1], a = cols[2];
+                        const cat = cols[0], q = cols[1], a = cols[2]; const source = cols[3] !== undefined ? cols[3] : '網路';
                         if (cat && q && a) {
-                            if (isDuplicate(q, a)) {
-                                skippedCount++;
-                            } else {
-                                jokes.push({ id: Date.now() + Math.random(), category: cat, question: q, answer: a });
-                                addedCategories.add(cat); if (!categories.includes(cat)) categories.push(cat); addedCount++;
-                            }
+                            if (isDuplicate(q, a)) { skippedCount++; } else { jokes.push({ id: Date.now() + Math.random(), category: cat, question: q, answer: a, source: source }); addedCategories.add(cat); if (!categories.includes(cat)) categories.push(cat); addedCount++; }
                         }
                     }
                 });
-                if (addedCount > 0) { 
-                    addLog(`透過 CSV 新增了 ${addedCount} 則笑話 (自動略過 ${skippedCount} 則重複項目)。`); 
-                    saveData(); renderAdmin(); alert(`成功匯入 ${addedCount} 則笑話！\n(已略過 ${skippedCount} 則重複)`); 
-                } else if (skippedCount > 0) {
-                    alert(`匯入完成！但 ${skippedCount} 則笑話皆已重複，無新增任何資料。`);
-                } else { alert("匯入失敗，請檢查格式。"); }
+                if (addedCount > 0) { addLog(`透過 CSV 新增了 ${addedCount} 則笑話 (略過 ${skippedCount} 則)。`); saveData(); renderAdmin(); alert(`成功匯入 ${addedCount} 則！\n(已略過 ${skippedCount} 則重複)`); } else if (skippedCount > 0) { alert(`匯入完成！但 ${skippedCount} 則皆已重複。`); } else { alert("匯入失敗，請檢查格式。"); }
                 fileInput.value = ""; 
-            };
-            reader.readAsText(file);
+            }; reader.readAsText(file);
         }
 
         function exportCSV() {
-            let csvContent = "\uFEFF"; 
-            csvContent += "類別,問題,答案\n";
+            let csvContent = "\uFEFF"; csvContent += "類別,問題,答案,來源\n";
             jokes.forEach(j => {
-                const escapeCSV = str => `"${String(str).replace(/"/g, '""')}"`;
-                csvContent += `${escapeCSV(j.category)},${escapeCSV(j.question)},${escapeCSV(j.answer)}\n`;
+                const escapeCSV = str => `"${String(str || '').replace(/"/g, '""')}"`; csvContent += `${escapeCSV(j.category)},${escapeCSV(j.question)},${escapeCSV(j.answer)},${escapeCSV(j.source || '')}\n`;
             });
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url); link.setAttribute("download", "jokes_export.csv");
-            document.body.appendChild(link); link.click(); document.body.removeChild(link);
-            addLog("執行了笑話資料匯出 (CSV)。"); saveData();
+            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' }); const url = URL.createObjectURL(blob);
+            const link = document.createElement("a"); link.setAttribute("href", url); link.setAttribute("download", "jokes_export.csv"); document.body.appendChild(link); link.click(); document.body.removeChild(link); addLog("匯出 CSV。");
         }
 
         function renderStats() {
             let totalLikes = 0, totalFavs = 0, totalComments = 0;
-            const counts = {}; categories.forEach(c => counts[c] = 0); 
-
             jokes.forEach(j => { 
-                counts[j.category] = (counts[j.category] || 0) + 1; 
                 if (j.likes) totalLikes += Object.keys(j.likes).length;
                 if (j.favs) totalFavs += Object.keys(j.favs).length;
                 if (j.comments) totalComments += j.comments.length;
@@ -946,20 +794,69 @@
             document.getElementById('stat-favs').innerText = totalFavs;
             document.getElementById('stat-comments').innerText = totalComments;
 
-            const ctx = document.getElementById('jokesChart').getContext('2d');
-            if (chartInstance) chartInstance.destroy();
-            chartInstance = new Chart(ctx, {
-                type: 'bar',
-                data: { labels: Object.keys(counts), datasets: [{ label: '笑話數量', data: Object.values(counts), backgroundColor: 'rgba(250, 204, 21, 0.6)', borderColor: 'rgba(234, 179, 8, 1)', borderWidth: 1, borderRadius: 4 }] },
-                options: { responsive: true, maintainAspectRatio: false, scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } } } }
-            });
-            document.getElementById('jokesChart').parentElement.style.height = '300px';
+            // 預設載入「總數」圖表
+            showLeaderboard('total');
 
             const logsUl = document.getElementById('update-logs'); logsUl.innerHTML = '';
             updateLogs.forEach(log => {
                 const li = document.createElement('li'); li.className = "border-b border-gray-100 pb-2 last:border-0";
                 li.innerHTML = `<span class="text-gray-400 block text-xs mb-0.5">${log.time}</span> <span class="text-gray-700">${log.msg}</span>`;
                 logsUl.appendChild(li);
+            });
+        }
+
+        // 2. 顯示互動排行榜圖表
+        function showLeaderboard(type) {
+            // 切換按鈕樣式
+            ['total', 'likes', 'favs', 'comments'].forEach(t => {
+                document.getElementById(`card-stat-${t}`).classList.remove('border-yellow-400', 'bg-yellow-50');
+                document.getElementById(`card-stat-${t}`).classList.add('border-transparent');
+            });
+            document.getElementById(`card-stat-${type}`).classList.remove('border-transparent');
+            document.getElementById(`card-stat-${type}`).classList.add('border-yellow-400', 'bg-yellow-50');
+
+            const ctx = document.getElementById('leaderboardChart').getContext('2d');
+            if (chartInstance) chartInstance.destroy();
+
+            let labels = []; let data = []; let labelName = ''; let bgColor = ''; let title = '';
+
+            if (type === 'total') {
+                title = '各類別笑話數量分佈'; labelName = '笑話數量'; bgColor = 'rgba(250, 204, 21, 0.6)';
+                const counts = {}; categories.forEach(c => counts[c] = 0); 
+                jokes.forEach(j => { counts[j.category] = (counts[j.category] || 0) + 1; });
+                labels = Object.keys(counts); data = Object.values(counts);
+            } else {
+                let sortedJokes = [...jokes];
+                if (type === 'likes') { title = '👍 最多讚排行榜 (Top 5)'; labelName = '獲讚數'; bgColor = 'rgba(59, 130, 246, 0.6)'; sortedJokes.sort((a,b) => (b.likes ? Object.keys(b.likes).length : 0) - (a.likes ? Object.keys(a.likes).length : 0)); }
+                else if (type === 'favs') { title = '❤️ 最多收藏排行榜 (Top 5)'; labelName = '收藏數'; bgColor = 'rgba(236, 72, 153, 0.6)'; sortedJokes.sort((a,b) => (b.favs ? Object.keys(b.favs).length : 0) - (a.favs ? Object.keys(a.favs).length : 0)); }
+                else if (type === 'comments') { title = '💬 最多評論排行榜 (Top 5)'; labelName = '評論數'; bgColor = 'rgba(34, 197, 94, 0.6)'; sortedJokes.sort((a,b) => (b.comments ? b.comments.length : 0) - (a.comments ? a.comments.length : 0)); }
+
+                const top5 = sortedJokes.slice(0, 5).filter(j => {
+                    if (type === 'likes') return j.likes && Object.keys(j.likes).length > 0;
+                    if (type === 'favs') return j.favs && Object.keys(j.favs).length > 0;
+                    if (type === 'comments') return j.comments && j.comments.length > 0;
+                });
+
+                if (top5.length === 0) { labels = ['(目前尚無數據)']; data = [0]; } 
+                else {
+                    labels = top5.map(j => j.question.length > 10 ? j.question.substring(0, 10) + '...' : j.question);
+                    data = top5.map(j => {
+                        if(type==='likes') return Object.keys(j.likes).length;
+                        if(type==='favs') return Object.keys(j.favs).length;
+                        return j.comments.length;
+                    });
+                }
+            }
+
+            document.getElementById('leaderboard-title').innerText = title;
+            chartInstance = new Chart(ctx, {
+                type: 'bar',
+                data: { labels: labels, datasets: [{ label: labelName, data: data, backgroundColor: bgColor, borderRadius: 4 }] },
+                options: {
+                    indexAxis: type === 'total' ? 'x' : 'y', // 排行榜使用橫向長條圖，文字比較好閱讀
+                    responsive: true, maintainAspectRatio: false, 
+                    scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } }
+                }
             });
         }
     </script>
