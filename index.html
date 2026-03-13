@@ -176,6 +176,9 @@
                         <select id="admin-sort-select" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
                             <option value="newest">最新新增</option>
                             <option value="oldest">最舊新增</option>
+                            <option value="most-likes">最多讚</option>
+                            <option value="most-dislikes">最多倒讚</option>
+                            <option value="most-favs">最多收藏</option>
                         </select>
 
                         <select id="admin-filter-category" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
@@ -233,9 +236,6 @@
     </footer>
 
     <script>
-        // ==========================================
-        // Firebase 設定與權限 
-        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyBlJThehQdczOSDrLHKTE126iWnzsdmkKQ",
           authDomain: "jokes-11086.firebaseapp.com",
@@ -247,13 +247,12 @@
           measurementId: "G-Q3S9BH55RG"
         };
         
-        // 請將此處改為你在後台建立的唯一「管理員信箱」
         const ADMIN_EMAIL = "chenwei.c0508@gmail.com"; 
 
         let db = null;
         let auth = null;
         const useFirebase = firebaseConfig.apiKey !== "";
-        let isAdmin = false; // 全域判斷是否為管理員
+        let isAdmin = false; 
 
         const d = new Date();
         const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -269,7 +268,7 @@
                 const statusAdmin = document.getElementById('sync-status-admin');
 
                 if(user) {
-                    isAdmin = (user.email === ADMIN_EMAIL); // 判斷是否為站長
+                    isAdmin = (user.email === ADMIN_EMAIL); 
                     navBtn.innerText = '登出';
                     navBtn.title = user.displayName || user.email;
 
@@ -289,7 +288,6 @@
                     
                     if(!document.getElementById('view-admin').classList.contains('hidden')) navigate('home');
                     
-                    // 訪客計數 (有登入就不算訪客)
                     if (localStorage.getItem('visited_date') !== todayStr) {
                         visitorRef.transaction(current => (current || 0) + 1, (error, committed) => {
                             if (committed) localStorage.setItem('visited_date', todayStr);
@@ -303,9 +301,6 @@
             });
         }
 
-        // ==========================================
-        // 核心資料狀態
-        // ==========================================
         const defaultJokes = [
             { id: Date.now(), category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)" },
             { id: Date.now()+1, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見" }
@@ -347,7 +342,6 @@
                     if(!document.getElementById('view-admin').classList.contains('hidden') && isAdmin) renderAdmin();
                     if(!document.getElementById('view-stats').classList.contains('hidden')) renderStats();
                     
-                    // 如果停留在單字卡畫面，重新整理互動數據
                     if(!document.getElementById('view-joke').classList.contains('hidden') && currentMode === 'flashcard') {
                         updateCardDisplay(true);
                     }
@@ -363,7 +357,6 @@
             }
         };
 
-        // 修改：即使是訪客也能儲存資料 (寫入互動與留言)。我們依賴 Firebase Rules 保護安全。
         function saveData() {
             localStorage.setItem('jokesDB', JSON.stringify(jokes));
             localStorage.setItem('categoriesDB', JSON.stringify(categories));
@@ -377,9 +370,6 @@
             }
         }
 
-        // ==========================================
-        // 介面與功能邏輯
-        // ==========================================
         function navigate(view) {
             document.querySelectorAll('.view-section').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex'); });
             const target = document.getElementById(`view-${view}`);
@@ -492,7 +482,6 @@
             document.getElementById('joke-q-left').innerText = prevJokeObj.question;
             document.getElementById('joke-q-right').innerText = nextJokeObj.question;
 
-            // 2. 更新互動與留言數據
             const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
             
             const likeCount = currentJoke.likes ? Object.keys(currentJoke.likes).length : 0;
@@ -507,7 +496,6 @@
             document.getElementById('btn-dislike').className = (uid && currentJoke.dislikes && currentJoke.dislikes[uid]) ? "flex items-center gap-1 text-red-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-red-500 transition";
             document.getElementById('btn-fav').className = (uid && currentJoke.favs && currentJoke.favs[uid]) ? "flex items-center gap-1 text-pink-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-pink-500 transition";
 
-            // 更新留言區
             const comments = currentJoke.comments || [];
             document.getElementById('count-comment').innerText = comments.length;
             const commentListEl = document.getElementById('comments-list');
@@ -529,7 +517,6 @@
             }
         }
 
-        // 2. 互動按鈕點擊事件 (按讚、倒讚、收藏)
         function toggleInteract(type) {
             if (!useFirebase || !auth.currentUser) {
                 document.getElementById('login-modal').classList.remove('hidden'); return;
@@ -542,21 +529,18 @@
             if (!jokes[jIdx][type]) jokes[jIdx][type] = {};
             
             if (jokes[jIdx][type][uid]) {
-                delete jokes[jIdx][type][uid]; // 取消
+                delete jokes[jIdx][type][uid]; 
             } else {
-                jokes[jIdx][type][uid] = true; // 新增
-                // 讚與倒讚互斥
+                jokes[jIdx][type][uid] = true; 
                 if (type === 'likes' && jokes[jIdx].dislikes && jokes[jIdx].dislikes[uid]) delete jokes[jIdx].dislikes[uid];
                 if (type === 'dislikes' && jokes[jIdx].likes && jokes[jIdx].likes[uid]) delete jokes[jIdx].likes[uid];
             }
             
-            // 更新目前陣列的 reference 讓畫面即時生效
             currentCategoryJokes[currentIndex] = jokes[jIdx];
             saveData();
             updateCardDisplay(true);
         }
 
-        // 2. 新增評論
         function addComment() {
             if (!useFirebase || !auth.currentUser) {
                 document.getElementById('login-modal').classList.remove('hidden'); return;
@@ -631,9 +615,6 @@
             }
         }, {passive: true});
 
-        // ==========================================
-        // 登入與後台管理邏輯
-        // ==========================================
         function handleAuthClick() {
             if (auth && auth.currentUser) {
                 if(confirm("確定要登出嗎？")) userLogout();
@@ -662,7 +643,6 @@
             document.getElementById('admin-email').value = ''; document.getElementById('admin-pwd').value = '';
         }
 
-        // 2. Google 一鍵登入
         function googleLogin() {
             if (!useFirebase) { alert("請先完成 Firebase 設定！"); return; }
             const provider = new firebase.auth.GoogleAuthProvider();
@@ -694,7 +674,7 @@
         }
 
         function renderAdmin() {
-            if (!isAdmin && useFirebase) { navigate('home'); return; } // 安全阻擋
+            if (!isAdmin && useFirebase) { navigate('home'); return; } 
 
             const categoryListContainer = document.getElementById('admin-category-list');
             categoryListContainer.innerHTML = '';
@@ -721,18 +701,26 @@
                 });
             }
 
-            // 1. & 3. 讀取搜尋關鍵字與排序方式
             const searchVal = document.getElementById('admin-search-input') ? document.getElementById('admin-search-input').value.toLowerCase() : '';
             const sortVal = document.getElementById('admin-sort-select') ? document.getElementById('admin-sort-select').value : 'newest';
 
-            // 建立含原始 index 的映射陣列，方便排序與過濾後還能改到正確的資料
             let mappedJokes = jokes.map((j, idx) => ({ ...j, originalIndex: idx }));
 
             if (currentFilter !== 'all') mappedJokes = mappedJokes.filter(j => j.category === currentFilter);
             if (searchVal) mappedJokes = mappedJokes.filter(j => j.question.toLowerCase().includes(searchVal) || j.answer.toLowerCase().includes(searchVal));
 
-            if (sortVal === 'newest') mappedJokes.sort((a, b) => b.id - a.id);
-            else mappedJokes.sort((a, b) => a.id - b.id);
+            // 更新排序邏輯：加入倒讚與最多讚、最多收藏排序
+            if (sortVal === 'newest') {
+                mappedJokes.sort((a, b) => b.id - a.id);
+            } else if (sortVal === 'oldest') {
+                mappedJokes.sort((a, b) => a.id - b.id);
+            } else if (sortVal === 'most-likes') {
+                mappedJokes.sort((a, b) => (b.likes ? Object.keys(b.likes).length : 0) - (a.likes ? Object.keys(a.likes).length : 0));
+            } else if (sortVal === 'most-dislikes') {
+                mappedJokes.sort((a, b) => (b.dislikes ? Object.keys(b.dislikes).length : 0) - (a.dislikes ? Object.keys(a.dislikes).length : 0));
+            } else if (sortVal === 'most-favs') {
+                mappedJokes.sort((a, b) => (b.favs ? Object.keys(b.favs).length : 0) - (a.favs ? Object.keys(a.favs).length : 0));
+            }
 
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
@@ -740,8 +728,8 @@
                 const origIdx = j.originalIndex;
                 const catOptions = categories.map(c => `<option value="${c}" ${c === j.category ? 'selected' : ''}>${c}</option>`).join('');
                 
-                // 顯示該則笑話的互動數據
                 const lc = j.likes ? Object.keys(j.likes).length : 0;
+                const dc = j.dislikes ? Object.keys(j.dislikes).length : 0;
                 const fc = j.favs ? Object.keys(j.favs).length : 0;
                 
                 const tr = document.createElement('tr');
@@ -751,7 +739,7 @@
                         <select onchange="updateJokeCategory(${origIdx}, this)" class="w-full bg-transparent outline-none focus:ring-2 focus:ring-yellow-300 rounded p-1 cursor-pointer border border-gray-200 hover:bg-white mb-1">
                             ${catOptions}
                         </select>
-                        <div class="text-[10px] text-gray-400 mt-1 flex gap-2"><span>👍 ${lc}</span><span>❤️ ${fc}</span></div>
+                        <div class="text-[10px] text-gray-400 mt-1 flex gap-2"><span>👍 ${lc}</span><span>👎 ${dc}</span><span>❤️ ${fc}</span></div>
                     </td>
                     <td class="p-2 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'question', this)">${j.question}</td>
                     <td class="p-2 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'answer', this)">${j.answer}</td>
@@ -873,7 +861,6 @@
         }
 
         function renderStats() {
-            // 2. 計算所有互動數據總和
             let totalLikes = 0, totalFavs = 0, totalComments = 0;
             const counts = {}; categories.forEach(c => counts[c] = 0); 
 
