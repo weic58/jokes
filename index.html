@@ -20,12 +20,19 @@
         .card-inner { transition: transform 0.6s cubic-bezier(0.4, 0.2, 0.2, 1); }
         .flipped .card-inner { transform: rotateY(180deg); }
         ::-webkit-scrollbar { width: 0px; background: transparent; }
+
+        /* 5. 滑動動畫所需的基礎 CSS 類別 */
+        .card-base { position: absolute; width: 100%; height: 100%; transition: all 0.3s ease-out; }
+        .pos-left { transform: translateX(-110%) scale(0.85); filter: blur(4px); opacity: 0.5; }
+        .pos-center { transform: translateX(0) scale(1); filter: blur(0); opacity: 1; z-index: 10; }
+        .pos-right { transform: translateX(110%) scale(0.85); filter: blur(4px); opacity: 0.5; }
+        .no-transition { transition: none !important; }
     </style>
 </head>
 <body class="bg-gray-100 text-gray-800 font-sans flex flex-col min-h-screen">
 
     <header class="bg-yellow-400 text-white p-4 shadow-md flex justify-between items-center z-10 sticky top-0 shrink-0">
-        <h1 class="text-2xl font-bold cursor-pointer" onclick="navigate('home')">笑話大全</h1>
+        <h1 class="text-2xl font-bold cursor-pointer" onclick="navigate('home')">😂 笑話大全</h1>
         <div class="space-x-4 flex items-center">
             <button onclick="searchJokes()" class="hover:text-yellow-200 text-xl" title="搜尋">🔍</button>
             <button onclick="navigate('stats')" class="hover:text-yellow-200 text-xl" title="統計">📊</button>
@@ -61,25 +68,44 @@
                 </div>
             </div>
 
-            <div class="w-full flex-grow flex flex-col items-center justify-center pb-8">
+            <div class="w-full flex-grow flex flex-col items-center justify-center pb-8 overflow-hidden">
                 <div id="flashcard-container" class="w-full max-w-sm flex flex-col items-center">
-                    <div id="flashcard" class="w-full h-80 perspective-1000 cursor-pointer" onclick="toggleCard()">
-                        <div class="card-inner relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
-                            <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400">
-                                <span class="text-sm text-yellow-500 font-bold absolute top-4 left-4">Q.</span>
-                                <p id="joke-question" class="text-xl font-semibold text-center"></p>
-                                <span class="text-xs text-gray-400 absolute bottom-4 animate-pulse">點擊翻面</span>
-                            </div>
-                            <div class="absolute w-full h-full backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white">
-                                <span class="text-sm text-yellow-100 font-bold absolute top-4 left-4">A.</span>
-                                <p id="joke-answer" class="text-2xl font-bold text-center"></p>
+                    
+                    <div id="carousel-wrapper" class="relative w-full h-80 flex justify-center items-center">
+                        
+                        <div id="card-left" class="card-base pos-left pointer-events-none hidden">
+                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
+                                <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
+                                <p id="joke-q-left" class="text-lg font-semibold text-center"></p>
                             </div>
                         </div>
+
+                        <div id="flashcard" class="card-base pos-center cursor-pointer perspective-1000" onclick="toggleCard()">
+                            <div class="card-inner relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
+                                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400">
+                                    <span class="text-sm text-yellow-500 font-bold absolute top-4 left-4">Q.</span>
+                                    <p id="joke-question" class="text-xl font-semibold text-center"></p>
+                                    <span class="text-xs text-gray-400 absolute bottom-4 animate-pulse">點擊翻面</span>
+                                </div>
+                                <div class="absolute w-full h-full backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white">
+                                    <span class="text-sm text-yellow-100 font-bold absolute top-4 left-4">A.</span>
+                                    <p id="joke-answer" class="text-2xl font-bold text-center"></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div id="card-right" class="card-base pos-right pointer-events-none hidden">
+                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
+                                <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
+                                <p id="joke-q-right" class="text-lg font-semibold text-center"></p>
+                            </div>
+                        </div>
+
                     </div>
 
-                    <div class="flex justify-between w-full mt-8 px-2">
-                        <button onclick="prevJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition">⬅️ 前一個</button>
-                        <button onclick="nextJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition">下一個 ➡️</button>
+                    <div class="flex justify-between w-full mt-8 px-2 z-20">
+                        <button onclick="prevJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition shadow-sm">⬅️ 前一個</button>
+                        <button onclick="nextJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition shadow-sm">下一個 ➡️</button>
                     </div>
                     <p class="text-gray-400 text-sm mt-4">也可以在卡片上左右滑動喔！</p>
                 </div>
@@ -127,7 +153,7 @@
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow overflow-x-auto">
-                <h3 class="text-lg font-bold mb-2">現有笑話列表 <span class="text-xs font-normal text-gray-400 ml-2">(點擊欄位文字即可直接修改)</span></h3>
+                <h3 class="text-lg font-bold mb-2">現有笑話列表 <span class="text-xs font-normal text-gray-400 ml-2">(點擊欄位即可直接修改)</span></h3>
                 <table class="w-full text-left border-collapse min-w-[600px]">
                     <thead>
                         <tr class="bg-gray-100">
@@ -163,15 +189,15 @@
 
     </main>
 
-    <footer class="bg-gray-800 text-gray-400 flex justify-center items-center gap-4 p-4 mt-auto text-sm shrink-0">
+    <footer class="bg-gray-800 text-gray-400 flex justify-center items-center gap-4 p-4 mt-auto text-sm shrink-0 z-20">
         <p>Created by weic58 & Gemini, 2026.</p>
         <span class="border-l border-gray-600 h-4"></span>
-        <p>總訪客: <span id="visitor-count" class="font-bold text-white">載入中...</span></p>
+        <p>今日訪客數: <span id="visitor-count" class="font-bold text-white">載入中...</span></p>
     </footer>
 
     <script>
         // ==========================================
-        // 1. Firebase 設定區塊 (請在這裡填入你的資料)
+        // Firebase 設定區塊 
         // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyBlJThehQdczOSDrLHKTE126iWnzsdmkKQ",
@@ -188,12 +214,18 @@
         let auth = null;
         const useFirebase = firebaseConfig.apiKey !== "";
 
+        // 2. 獲取當地的今日日期字串 (YYYY-MM-DD)，作為每日訪客重置的依據
+        const d = new Date();
+        const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+
         if (useFirebase) {
             firebase.initializeApp(firebaseConfig);
             db = firebase.database();
             auth = firebase.auth();
             
-            // 監聽登入狀態
+            const visitorRef = db.ref('dailyVisitors/' + todayStr);
+            
+            // 3. 監聽登入狀態並處理訪客統計 (管理員不計入)
             auth.onAuthStateChanged(user => {
                 if(user) {
                     document.getElementById('sync-status').innerText = "(已連線並登入管理員 🟢)";
@@ -201,11 +233,23 @@
                 } else {
                     document.getElementById('sync-status').innerText = "(已連線，目前為訪客模式 🟡)";
                     document.getElementById('sync-status').className = "text-sm font-normal text-yellow-500 ml-2";
-                    // 如果登出時剛好在後台，強制踢回首頁
+                    
                     if(!document.getElementById('view-admin').classList.contains('hidden')) {
                         navigate('home');
                     }
+                    
+                    // 如果今日還沒被計數過，則人數 + 1
+                    if (localStorage.getItem('visited_date') !== todayStr) {
+                        visitorRef.transaction(current => (current || 0) + 1, (error, committed) => {
+                            if (committed) localStorage.setItem('visited_date', todayStr);
+                        });
+                    }
                 }
+            });
+
+            // 隨時更新畫面上的今日訪客數
+            visitorRef.on('value', snap => {
+                document.getElementById('visitor-count').innerText = snap.val() || 0;
             });
         }
 
@@ -225,17 +269,13 @@
         let currentIndex = 0;
         let chartInstance = null;
         let currentMode = 'flashcard'; 
+        let isAnimating = false; // 動畫狀態鎖定
 
         // ==========================================
-        // 初始化與 Firebase 資料監聽
+        // 初始化與資料監聽
         // ==========================================
         window.onload = function() {
             if (useFirebase) {
-                const visitorRef = db.ref('visitorCount');
-                visitorRef.transaction(current => (current || 0) + 1, (error, committed, snapshot) => {
-                    if(committed) document.getElementById('visitor-count').innerText = snapshot.val();
-                });
-
                 db.ref('appData').on('value', snapshot => {
                     const data = snapshot.val();
                     if (data) {
@@ -251,9 +291,13 @@
                     if(!document.getElementById('view-stats').classList.contains('hidden')) renderStats();
                 });
             } else {
-                let v = parseInt(localStorage.getItem('localVisitors') || '0') + 1;
-                localStorage.setItem('localVisitors', v);
-                document.getElementById('visitor-count').innerText = v;
+                // 單機版今日訪客統計邏輯
+                if (localStorage.getItem('visited_date') !== todayStr) {
+                    let v = parseInt(localStorage.getItem('localDaily_' + todayStr) || '0') + 1;
+                    localStorage.setItem('localDaily_' + todayStr, v);
+                    localStorage.setItem('visited_date', todayStr);
+                }
+                document.getElementById('visitor-count').innerText = localStorage.getItem('localDaily_' + todayStr) || 0;
                 renderHome();
             }
         };
@@ -296,7 +340,6 @@
             usedCategories.forEach(c => {
                 if(!categories.includes(c)) { categories.push(c); needsSave = true; }
             });
-            // 避免無限觸發存檔
             if(needsSave && (!useFirebase || (auth && auth.currentUser))) saveData();
 
             const specialCats = [
@@ -345,7 +388,9 @@
                 document.getElementById('joke-category-title').innerText = `類別：${category}`;
             }
             if (currentCategoryJokes.length === 0) { alert(`「${category}」目前還沒有笑話喔！趕快去後台新增吧！`); return; }
-            currentIndex = 0; setJokeMode('flashcard'); navigate('joke');
+            currentIndex = 0; 
+            setJokeMode('flashcard'); 
+            navigate('joke');
         }
 
         function setJokeMode(mode) {
@@ -360,7 +405,7 @@
                 btnList.className = "px-6 py-2 rounded-full font-bold transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-300";
                 containerFlashcard.classList.remove('hidden'); containerFlashcard.classList.add('flex');
                 containerList.classList.add('hidden'); containerList.classList.remove('flex');
-                updateCardDisplay();
+                updateCardDisplay(true);
             } else {
                 btnList.className = "px-6 py-2 rounded-full font-bold transition-colors bg-yellow-400 text-white shadow";
                 btnFlashcard.className = "px-6 py-2 rounded-full font-bold transition-colors text-gray-500 hover:text-gray-700 hover:bg-gray-300";
@@ -370,11 +415,53 @@
             }
         }
 
-        function updateCardDisplay() {
+        // 5. 負責重置與更新三張卡片內容的函數
+        function updateCardDisplay(instant = false) {
             if(currentCategoryJokes.length === 0) return;
-            document.getElementById('joke-question').innerText = currentCategoryJokes[currentIndex].question;
-            document.getElementById('joke-answer').innerText = currentCategoryJokes[currentIndex].answer;
-            document.getElementById('flashcard').classList.remove('flipped');
+            
+            const center = document.getElementById('flashcard');
+            const left = document.getElementById('card-left');
+            const right = document.getElementById('card-right');
+
+            // 如果是 instant 模式，則暫停動畫以瞬間就位
+            if (instant) {
+                center.classList.add('no-transition');
+                left.classList.add('no-transition');
+                right.classList.add('no-transition');
+            }
+
+            // 重置卡片回到各自的基準位置
+            center.className = 'card-base pos-center cursor-pointer perspective-1000' + (instant ? ' no-transition' : '');
+            left.className = 'card-base pos-left pointer-events-none' + (instant ? ' no-transition' : '');
+            right.className = 'card-base pos-right pointer-events-none' + (instant ? ' no-transition' : '');
+
+            // 若笑話不足兩則，隱藏左右卡片
+            if (currentCategoryJokes.length > 1) {
+                left.classList.remove('hidden');
+                right.classList.remove('hidden');
+            } else {
+                left.classList.add('hidden');
+                right.classList.add('hidden');
+            }
+
+            // 計算當前、前一個、下一個笑話的索引
+            const currentJoke = currentCategoryJokes[currentIndex];
+            const prevJokeObj = currentCategoryJokes[(currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length];
+            const nextJokeObj = currentCategoryJokes[(currentIndex + 1) % currentCategoryJokes.length];
+
+            // 填入資料
+            document.getElementById('joke-question').innerText = currentJoke.question;
+            document.getElementById('joke-answer').innerText = currentJoke.answer;
+            document.getElementById('joke-q-left').innerText = prevJokeObj.question;
+            document.getElementById('joke-q-right').innerText = nextJokeObj.question;
+
+            if (instant) {
+                // 強制重繪以確保無轉場樣式生效
+                void center.offsetWidth;
+                center.classList.remove('no-transition');
+                left.classList.remove('no-transition');
+                right.classList.remove('no-transition');
+            }
         }
 
         function renderListDisplay() {
@@ -391,8 +478,53 @@
         }
 
         function toggleCard() { document.getElementById('flashcard').classList.toggle('flipped'); }
-        function nextJoke() { document.getElementById('flashcard').classList.remove('flipped'); setTimeout(() => { currentIndex = (currentIndex + 1) % currentCategoryJokes.length; updateCardDisplay(); }, 150); }
-        function prevJoke() { document.getElementById('flashcard').classList.remove('flipped'); setTimeout(() => { currentIndex = (currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length; updateCardDisplay(); }, 150); }
+
+        // 5. 下一則笑話的滑動動畫邏輯
+        function nextJoke() { 
+            if(isAnimating || currentCategoryJokes.length <= 1) return;
+            isAnimating = true;
+
+            const center = document.getElementById('flashcard');
+            const right = document.getElementById('card-right');
+            
+            // 替換位置類別：中央往左滑，右側往中央滑
+            center.classList.remove('pos-center');
+            center.classList.add('pos-left'); 
+            right.classList.remove('pos-right');
+            right.classList.add('pos-center'); 
+
+            center.classList.remove('flipped');
+
+            // 等待動畫結束後，更新真實資料並瞬間歸位
+            setTimeout(() => {
+                currentIndex = (currentIndex + 1) % currentCategoryJokes.length;
+                updateCardDisplay(true);
+                isAnimating = false;
+            }, 300);
+        }
+
+        // 5. 上一則笑話的滑動動畫邏輯
+        function prevJoke() { 
+            if(isAnimating || currentCategoryJokes.length <= 1) return;
+            isAnimating = true;
+
+            const center = document.getElementById('flashcard');
+            const left = document.getElementById('card-left');
+            
+            // 替換位置類別：中央往右滑，左側往中央滑
+            center.classList.remove('pos-center');
+            center.classList.add('pos-right'); 
+            left.classList.remove('pos-left');
+            left.classList.add('pos-center'); 
+
+            center.classList.remove('flipped');
+
+            setTimeout(() => {
+                currentIndex = (currentIndex - 1 + currentCategoryJokes.length) % currentCategoryJokes.length;
+                updateCardDisplay(true);
+                isAnimating = false;
+            }, 300);
+        }
 
         let touchStartX = 0;
         let touchEndX = 0;
@@ -416,13 +548,9 @@
         // ==========================================
         function checkAdminAccess() {
             if (useFirebase) {
-                if (auth.currentUser) {
-                    navigate('admin'); // 已登入直接進後台
-                } else {
-                    document.getElementById('login-modal').classList.remove('hidden'); // 顯示登入視窗
-                }
+                if (auth.currentUser) navigate('admin'); 
+                else document.getElementById('login-modal').classList.remove('hidden'); 
             } else {
-                // 如果根本沒設定 Firebase，維持原本的陽春密碼當作單機測試
                 const pwd = prompt("您尚未設定 Firebase。單機測試密碼為 wei58：");
                 if (pwd === "wei58") navigate('admin');
                 else if (pwd !== null) alert("密碼錯誤！");
@@ -441,20 +569,13 @@
             if(!email || !pwd) { alert("請輸入信箱與密碼！"); return; }
             
             auth.signInWithEmailAndPassword(email, pwd)
-                .then((userCredential) => {
-                    closeLoginModal();
-                    navigate('admin');
-                })
-                .catch((error) => {
-                    alert("登入失敗，請檢查信箱或密碼是否正確！");
-                });
+                .then(() => { closeLoginModal(); navigate('admin'); })
+                .catch(() => alert("登入失敗，請檢查信箱或密碼是否正確！"));
         }
 
         function adminLogout() {
             if (useFirebase && auth.currentUser) {
-                auth.signOut().then(() => {
-                    alert("已成功登出！");
-                });
+                auth.signOut().then(() => alert("已成功登出！"));
             } else {
                 navigate('home');
             }
@@ -485,15 +606,32 @@
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
             jokes.forEach((j, index) => {
+                // 4. 後台表格類別改用下拉式選單 <select>
+                const catOptions = categories.map(c => `<option value="${c}" ${c === j.category ? 'selected' : ''}>${c}</option>`).join('');
+
                 const tr = document.createElement('tr');
                 tr.className = "border-b hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-3 border text-gray-700 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'category', this)">${j.category}</td>
+                    <td class="p-3 border text-gray-700">
+                        <select onchange="updateJokeCategory(${index}, this)" class="w-full bg-transparent outline-none focus:ring-2 focus:ring-yellow-300 rounded p-1 cursor-pointer border border-gray-200 hover:bg-white">
+                            ${catOptions}
+                        </select>
+                    </td>
                     <td class="p-3 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'question', this)">${j.question}</td>
                     <td class="p-3 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'answer', this)">${j.answer}</td>
                     <td class="p-3 border text-center whitespace-nowrap"><button onclick="deleteJoke(${index})" class="text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">刪除</button></td>`;
                 tbody.appendChild(tr);
             });
+        }
+
+        // 4. 處理下拉式選單更新類別的邏輯
+        function updateJokeCategory(index, element) {
+            const newCat = element.value;
+            if (jokes[index].category !== newCat) {
+                jokes[index].category = newCat;
+                saveData();
+                renderAdmin(); 
+            }
         }
 
         function updateCategoryName(index, element) {
