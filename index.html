@@ -70,13 +70,13 @@
 
     <main class="flex-grow p-4 relative overflow-hidden flex flex-col items-center" id="main-content">
         
-        <div id="view-home" class="view-section w-full max-w-3xl flex-grow flex-col gap-8 hidden">
+        <div id="view-home" class="view-section w-full max-w-3xl flex-grow flex-col gap-8 flex">
             <div class="w-full">
                 <h3 class="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2"><span class="text-2xl">✨</span> 特別企劃</h3>
                 <div id="special-list" class="grid grid-cols-1 sm:grid-cols-3 gap-4"></div>
             </div>
             <div class="w-full">
-                <h3 class="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2"><span class="text-2xl">📂</span> 探索類別</h3>
+                <h3 class="text-xl font-bold text-gray-700 mb-4 flex items-center gap-2">探索類別</h3>
                 <div id="category-list" class="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4"></div>
             </div>
         </div>
@@ -94,38 +94,38 @@
                 <div id="flashcard-container" class="w-full max-w-sm flex flex-col items-center mt-4">
                     <div id="carousel-wrapper" class="relative w-full h-80 flex justify-center items-center">
                         <div id="card-left" class="card-base pos-left hidden" onclick="prevJoke()">
-                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400 relative">
+                            <div class="absolute inset-0 shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
                                 <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
                                 <span id="joke-cat-left" class="absolute top-4 right-4 bg-gray-100 text-gray-400 px-2 py-1 rounded-full text-xs font-bold hidden"></span>
                                 <p id="joke-q-left" class="text-lg font-semibold text-center"></p>
-                                <span id="joke-source-left" class="absolute bottom-4 left-4 text-gray-300 text-[10px] hidden"></span>
+                                <span id="joke-source-left" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-gray-300 text-[10px] hidden"></span>
                             </div>
                         </div>
 
                         <div id="flashcard" class="card-base pos-center cursor-pointer perspective-1000" onclick="toggleCard()">
                             <div class="card-inner relative w-full h-full transform-style-3d shadow-xl rounded-2xl">
-                                <div class="absolute w-full h-full backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400 relative">
+                                <div class="absolute inset-0 backface-hidden bg-white rounded-2xl flex flex-col items-center justify-center p-6 border-4 border-yellow-400">
                                     <span class="text-sm text-yellow-500 font-bold absolute top-4 left-4">Q.</span>
                                     <span id="joke-cat-center" class="absolute top-4 right-4 bg-gray-100 text-gray-500 px-2 py-1 rounded-full text-xs font-bold hidden shadow-sm"></span>
                                     <p id="joke-question" class="text-xl font-semibold text-center"></p>
-                                    <span id="joke-source-center" class="absolute bottom-4 left-4 text-gray-400 text-xs hidden"></span>
+                                    <span id="joke-source-center" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-gray-400 text-xs hidden whitespace-nowrap"></span>
                                     <span class="text-xs text-gray-400 absolute bottom-4 animate-pulse right-4">點擊翻面</span>
                                 </div>
-                                <div class="absolute w-full h-full backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white relative">
+                                <div class="absolute inset-0 backface-hidden bg-yellow-400 rounded-2xl flex flex-col items-center justify-center p-6 rotate-y-180 text-white">
                                     <span class="text-sm text-yellow-100 font-bold absolute top-4 left-4">A.</span>
                                     <span id="joke-cat-center-back" class="absolute top-4 right-4 bg-yellow-500 text-yellow-100 px-2 py-1 rounded-full text-xs font-bold hidden shadow-sm"></span>
                                     <p id="joke-answer" class="text-2xl font-bold text-center"></p>
-                                    <span id="joke-source-center-back" class="absolute bottom-4 left-4 text-yellow-200 text-xs hidden"></span>
+                                    <span id="joke-source-center-back" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-yellow-200 text-xs hidden whitespace-nowrap"></span>
                                 </div>
                             </div>
                         </div>
 
                         <div id="card-right" class="card-base pos-right hidden" onclick="nextJoke()">
-                            <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400 relative">
+                            <div class="absolute inset-0 shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
                                 <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
                                 <span id="joke-cat-right" class="absolute top-4 right-4 bg-gray-100 text-gray-400 px-2 py-1 rounded-full text-xs font-bold hidden"></span>
                                 <p id="joke-q-right" class="text-lg font-semibold text-center"></p>
-                                <span id="joke-source-right" class="absolute bottom-4 left-4 text-gray-300 text-[10px] hidden"></span>
+                                <span id="joke-source-right" class="absolute bottom-4 left-1/2 -translate-x-1/2 text-gray-300 text-[10px] hidden"></span>
                             </div>
                         </div>
                     </div>
@@ -172,12 +172,12 @@
             
             <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-green-400">
                 <h3 class="text-lg font-bold mb-2 text-green-700">新增笑話</h3>
-                <div class="flex flex-col sm:flex-row gap-2">
-                    <select id="add-category-select" class="border p-2 rounded w-full sm:w-1/5 focus:outline-none focus:border-green-400 bg-white"></select>
-                    <input type="text" id="add-question" placeholder="問題" class="border p-2 rounded flex-1 focus:outline-none focus:border-green-400">
-                    <input type="text" id="add-answer" placeholder="答案" class="border p-2 rounded flex-1 focus:outline-none focus:border-green-400">
-                    <input type="text" id="add-source" placeholder="來源 (預設:網路)" value="網路" class="border p-2 rounded w-full sm:w-1/6 focus:outline-none focus:border-green-400 text-sm">
-                    <button onclick="addJoke()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition whitespace-nowrap">新增</button>
+                <div class="flex flex-col md:flex-row gap-2 items-center w-full">
+                    <select id="add-category-select" class="border p-2 rounded w-full md:w-1/6 focus:outline-none focus:border-green-400 bg-white"></select>
+                    <input type="text" id="add-question" placeholder="問題" class="border p-2 rounded w-full md:flex-1 focus:outline-none focus:border-green-400">
+                    <input type="text" id="add-answer" placeholder="答案" class="border p-2 rounded w-full md:flex-1 focus:outline-none focus:border-green-400">
+                    <input type="text" id="add-source" placeholder="來源(選填)" class="border p-2 rounded w-full md:w-1/6 focus:outline-none focus:border-green-400 text-sm">
+                    <button onclick="addJoke()" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition whitespace-nowrap w-full md:w-auto">新增</button>
                 </div>
             </div>
 
@@ -213,7 +213,7 @@
                             <th class="p-2 border font-semibold w-[15%]">類別</th>
                             <th class="p-2 border font-semibold w-[28%]">問題</th>
                             <th class="p-2 border font-semibold w-[28%]">答案</th>
-                            <th class="p-2 border font-semibold w-[15%]">來源</th>
+                            <th class="p-2 border font-semibold w-[15%] text-center">來源</th>
                             <th class="p-2 border font-semibold text-center w-[14%]">操作</th>
                         </tr>
                     </thead>
@@ -273,7 +273,7 @@
         };
         
         // 請將此處改為你在後台建立的唯一「管理員信箱」
-        const ADMIN_EMAIL = "chenwei.c0508@gmail.com"; 
+        const ADMIN_EMAIL = "chenwei.c0508@gmail.com";
 
         let db = null; let auth = null;
         const useFirebase = firebaseConfig.apiKey !== "";
@@ -315,8 +315,8 @@
         }
 
         const defaultJokes = [
-            { id: Date.now(), category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)", source: "網路" },
-            { id: Date.now()+1, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見", source: "網路" }
+            { id: Date.now(), category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)", source: "" },
+            { id: Date.now()+1, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見", source: "" }
         ];
 
         let jokes = JSON.parse(localStorage.getItem('jokesDB')) || defaultJokes;
@@ -330,10 +330,11 @@
         let isAnimating = false;
 
         function normalizeText(text) { return String(text).replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').toLowerCase(); }
-        function isDuplicate(q, a) {
+        // 4. 改寫比對邏輯，回傳重複項目的 Index 以便後續覆蓋
+        function findDuplicateIndex(q, a) {
             const normQ = normalizeText(q); const normA = normalizeText(a);
-            if (!normQ || !normA) return false;
-            return jokes.some(j => {
+            if (!normQ || !normA) return -1;
+            return jokes.findIndex(j => {
                 const jq = normalizeText(j.question); const ja = normalizeText(j.answer);
                 return (jq.includes(normQ) || normQ.includes(jq)) && (ja.includes(normA) || normA.includes(ja));
             });
@@ -391,9 +392,8 @@
             if (view === 'stats') renderStats();
         }
 
-        // 1. 搜尋列動畫與點擊外部關閉
         function toggleSearch(event) {
-            if (event) event.stopPropagation(); // 防止點擊按鈕時觸發外層關閉事件
+            if (event) event.stopPropagation(); 
             const container = document.getElementById('search-bar-container');
             const btn = document.getElementById('btn-toggle-search');
             
@@ -413,7 +413,6 @@
         document.addEventListener('click', function(event) {
             const container = document.getElementById('search-bar-container');
             const btn = document.getElementById('btn-toggle-search');
-            // 如果搜尋框是展開的，且點擊的目標不在搜尋框或按鈕內，就關閉它
             if (!container.classList.contains('w-0') && !container.contains(event.target) && event.target !== btn) {
                 toggleSearch();
             }
@@ -477,7 +476,7 @@
                 const dayOfYear = Math.floor((new Date() - new Date(new Date().getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24);
                 currentCategoryJokes = jokes.length > 0 ? [jokes[dayOfYear % jokes.length]] : []; document.getElementById('joke-category-title').innerText = "📅 每日精選";
             } else {
-                currentCategoryJokes = jokes.filter(j => j.category === category); document.getElementById('joke-category-title').innerText = `📂 ${category}`;
+                currentCategoryJokes = jokes.filter(j => j.category === category); document.getElementById('joke-category-title').innerText = `${category}`;
             }
             if (currentCategoryJokes.length === 0) { alert(`「${category}」目前還沒有笑話喔！`); return; }
             currentIndex = 0; setJokeMode('flashcard'); navigate('joke');
@@ -705,7 +704,7 @@
                     </td>
                     <td class="p-2 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'question', this)">${j.question}</td>
                     <td class="p-2 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'answer', this)">${j.answer}</td>
-                    <td class="p-2 border text-gray-500 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm text-xs" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'source', this)">${sourceText}</td>
+                    <td class="p-2 border text-gray-500 text-center outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm text-xs" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'source', this)">${sourceText}</td>
                     <td class="p-2 border text-center whitespace-nowrap"><button onclick="deleteJoke(${origIdx})" class="text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">刪除</button></td>`;
                 tbody.appendChild(tr);
             });
@@ -732,13 +731,29 @@
             if (!newCat) return; if (categories.includes(newCat)) { alert("這個類別已經存在囉！"); return; }
             categories.push(newCat); addLog(`新增了類別：「${newCat}」。`); saveData(); document.getElementById('add-new-category-input').value = ''; renderAdmin();
         }
+        
+        // 4. 單筆新增檢查覆蓋
         function addJoke() {
             const category = document.getElementById('add-category-select').value; const question = document.getElementById('add-question').value.trim();
             const answer = document.getElementById('add-answer').value.trim(); const source = document.getElementById('add-source').value.trim();
             if (!category || !question || !answer) { alert("請填寫分類、問題與答案！"); return; }
-            if (isDuplicate(question, answer)) { alert("這則笑話似乎已經存在囉！"); return; }
+            
+            let dupIdx = findDuplicateIndex(question, answer);
+            if (dupIdx !== -1) { 
+                if(confirm("這則笑話似乎已經存在囉！要直接覆蓋更新它嗎？")) {
+                    jokes[dupIdx].category = category;
+                    jokes[dupIdx].question = question;
+                    jokes[dupIdx].answer = answer;
+                    jokes[dupIdx].source = source;
+                    addLog(`覆蓋更新一則「${category}」笑話。`);
+                    saveData();
+                    document.getElementById('add-question').value = ''; document.getElementById('add-answer').value = ''; document.getElementById('add-source').value = ''; renderAdmin();
+                }
+                return; 
+            }
+            
             jokes.push({ id: Date.now(), category, question, answer, source }); addLog(`新增一則「${category}」笑話。`); saveData();
-            document.getElementById('add-question').value = ''; document.getElementById('add-answer').value = ''; document.getElementById('add-source').value = '網路'; renderAdmin();
+            document.getElementById('add-question').value = ''; document.getElementById('add-answer').value = ''; document.getElementById('add-source').value = ''; renderAdmin();
         }
         function updateJokeInline(index, field, element) {
             const newValue = element.innerText.trim(); const oldValue = jokes[index][field] || '';
@@ -752,22 +767,53 @@
         function deleteJoke(index) { if (confirm("確定刪除這則笑話嗎？")) { jokes.splice(index, 1); addLog(`刪除一則笑話。`); saveData(); renderAdmin(); } }
         function clearAllData() { if(confirm("警告：這將會清除所有資料！確定嗎？")) { jokes = [...defaultJokes]; categories = [...new Set(defaultJokes.map(j => j.category))]; updateLogs = [{ time: new Date().toLocaleString(), msg: "系統重置。" }]; saveData(); renderAdmin(); } }
 
+        // 4. 批量匯入檢查覆蓋
         function importCSV() {
             const fileInput = document.getElementById('csv-file'); const file = fileInput.files[0]; if (!file) { alert("請先選擇 CSV 檔案。"); return; }
             const reader = new FileReader();
             reader.onload = function(e) {
-                const text = e.target.result; const rows = text.split('\n'); let addedCount = 0; let skippedCount = 0; let addedCategories = new Set();
+                const text = e.target.result; const rows = text.split('\n'); 
+                let addedCount = 0; let updatedCount = 0; let skippedCount = 0; let addedCategories = new Set();
                 const re = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
+                
+                let duplicates = []; let newJokes = [];
+                
                 rows.forEach(row => {
                     const cols = row.split(re).map(s => s.replace(/(^"|"$)/g, '').replace(/""/g, '"').trim());
                     if (cols.length >= 3) {
-                        const cat = cols[0], q = cols[1], a = cols[2]; const source = cols[3] !== undefined ? cols[3] : '網路';
+                        const cat = cols[0], q = cols[1], a = cols[2]; const source = cols[3] !== undefined ? cols[3] : '';
                         if (cat && q && a) {
-                            if (isDuplicate(q, a)) { skippedCount++; } else { jokes.push({ id: Date.now() + Math.random(), category: cat, question: q, answer: a, source: source }); addedCategories.add(cat); if (!categories.includes(cat)) categories.push(cat); addedCount++; }
+                            let dupIdx = findDuplicateIndex(q, a);
+                            if (dupIdx !== -1) duplicates.push({ idx: dupIdx, cat, q, a, source });
+                            else newJokes.push({ cat, q, a, source });
                         }
                     }
                 });
-                if (addedCount > 0) { addLog(`透過 CSV 新增了 ${addedCount} 則笑話 (略過 ${skippedCount} 則)。`); saveData(); renderAdmin(); alert(`成功匯入 ${addedCount} 則！\n(已略過 ${skippedCount} 則重複)`); } else if (skippedCount > 0) { alert(`匯入完成！但 ${skippedCount} 則皆已重複。`); } else { alert("匯入失敗，請檢查格式。"); }
+
+                if (duplicates.length > 0) {
+                    let overwrite = confirm(`匯入的資料中發現 ${duplicates.length} 則重複笑話，是否要覆蓋原本的資料？\n(按「確定」將覆蓋更新，「取消」則略過重複項目)`);
+                    if (overwrite) {
+                        duplicates.forEach(d => {
+                            jokes[d.idx].category = d.cat; jokes[d.idx].question = d.q; jokes[d.idx].answer = d.a; jokes[d.idx].source = d.source;
+                            updatedCount++;
+                        });
+                    } else {
+                        skippedCount = duplicates.length;
+                    }
+                }
+
+                newJokes.forEach(n => {
+                    jokes.push({ id: Date.now() + Math.random(), category: n.cat, question: n.q, answer: n.a, source: n.source });
+                    if (!categories.includes(n.cat)) categories.push(n.cat); addedCount++;
+                });
+
+                if (addedCount > 0 || updatedCount > 0) { 
+                    addLog(`透過 CSV 新增了 ${addedCount} 則，覆蓋更新了 ${updatedCount} 則笑話。`); saveData(); renderAdmin(); 
+                    alert(`匯入完成！\n新增：${addedCount} 則\n更新：${updatedCount} 則\n略過：${skippedCount} 則`); 
+                } else if (skippedCount > 0) { 
+                    alert(`匯入完成！但 ${skippedCount} 則皆已重複，無新增任何資料。`); 
+                } else { alert("匯入失敗，請檢查格式。"); }
+                
                 fileInput.value = ""; 
             }; reader.readAsText(file);
         }
@@ -794,7 +840,6 @@
             document.getElementById('stat-favs').innerText = totalFavs;
             document.getElementById('stat-comments').innerText = totalComments;
 
-            // 預設載入「總數」圖表
             showLeaderboard('total');
 
             const logsUl = document.getElementById('update-logs'); logsUl.innerHTML = '';
@@ -805,9 +850,7 @@
             });
         }
 
-        // 2. 顯示互動排行榜圖表
         function showLeaderboard(type) {
-            // 切換按鈕樣式
             ['total', 'likes', 'favs', 'comments'].forEach(t => {
                 document.getElementById(`card-stat-${t}`).classList.remove('border-yellow-400', 'bg-yellow-50');
                 document.getElementById(`card-stat-${t}`).classList.add('border-transparent');
@@ -853,7 +896,7 @@
                 type: 'bar',
                 data: { labels: labels, datasets: [{ label: labelName, data: data, backgroundColor: bgColor, borderRadius: 4 }] },
                 options: {
-                    indexAxis: type === 'total' ? 'x' : 'y', // 排行榜使用橫向長條圖，文字比較好閱讀
+                    indexAxis: type === 'total' ? 'x' : 'y', 
                     responsive: true, maintainAspectRatio: false, 
                     scales: { x: { beginAtZero: true, ticks: { stepSize: 1 } }, y: { beginAtZero: true, ticks: { stepSize: 1 } } }
                 }
