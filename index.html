@@ -22,9 +22,9 @@
         ::-webkit-scrollbar { width: 0px; background: transparent; }
 
         .card-base { position: absolute; width: 100%; height: 100%; transition: all 0.3s ease-out; }
-        .pos-left { transform: translateX(-110%) scale(0.85); filter: blur(4px); opacity: 0.5; }
+        .pos-left { transform: translateX(-110%) scale(0.85); filter: blur(4px); opacity: 0.5; cursor: pointer; }
         .pos-center { transform: translateX(0) scale(1); filter: blur(0); opacity: 1; z-index: 10; }
-        .pos-right { transform: translateX(110%) scale(0.85); filter: blur(4px); opacity: 0.5; }
+        .pos-right { transform: translateX(110%) scale(0.85); filter: blur(4px); opacity: 0.5; cursor: pointer; }
         .no-transition { transition: none !important; }
     </style>
 </head>
@@ -36,18 +36,29 @@
             <button onclick="searchJokes()" class="hover:text-yellow-200 text-xl" title="搜尋">🔍</button>
             <button onclick="navigate('stats')" class="hover:text-yellow-200 text-xl" title="統計">📊</button>
             <button onclick="checkAdminAccess()" class="hover:text-yellow-200 text-xl" title="設定">⚙️</button>
+            <button onclick="handleAuthClick()" id="nav-auth-btn" class="hover:text-yellow-200 text-xl" title="會員登入">👤</button>
         </div>
     </header>
 
     <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex justify-center items-center z-50">
-        <div class="bg-white p-6 rounded-xl shadow-lg w-80">
-            <h3 class="text-xl font-bold mb-4 text-gray-800">管理員登入</h3>
+        <div class="bg-white p-6 rounded-xl shadow-lg w-80 relative">
+            <button onclick="closeLoginModal()" class="absolute top-2 right-3 text-gray-400 hover:text-gray-600 text-xl font-bold">&times;</button>
+            <h3 class="text-xl font-bold mb-4 text-gray-800 text-center">會員登入</h3>
+            
+            <button onclick="googleLogin()" class="w-full bg-white border border-gray-300 text-gray-700 font-bold py-2 rounded mb-4 hover:bg-gray-50 flex justify-center items-center gap-2 shadow-sm transition">
+                <svg class="w-5 h-5" viewBox="0 0 24 24"><path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/><path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/><path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z" fill="#FBBC05"/><path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z" fill="#EA4335"/></svg>
+                使用 Google 帳號登入
+            </button>
+
+            <div class="relative flex py-2 items-center mb-4">
+                <div class="flex-grow border-t border-gray-200"></div>
+                <span class="flex-shrink-0 mx-4 text-gray-400 text-xs">管理員專用</span>
+                <div class="flex-grow border-t border-gray-200"></div>
+            </div>
+
             <input type="email" id="admin-email" placeholder="管理員信箱" class="w-full border p-2 mb-3 rounded focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400">
             <input type="password" id="admin-pwd" placeholder="密碼" class="w-full border p-2 mb-4 rounded focus:outline-none focus:border-yellow-400 focus:ring-1 focus:ring-yellow-400" onkeydown="if(event.key==='Enter') adminLogin()">
-            <div class="flex justify-end gap-2">
-                <button onclick="closeLoginModal()" class="px-4 py-2 text-gray-500 hover:bg-gray-100 rounded transition">取消</button>
-                <button onclick="adminLogin()" class="px-4 py-2 bg-yellow-400 text-white font-bold rounded hover:bg-yellow-500 transition shadow-sm">登入</button>
-            </div>
+            <button onclick="adminLogin()" class="w-full bg-gray-800 text-white font-bold py-2 rounded hover:bg-gray-900 transition shadow-sm">進入後台</button>
         </div>
     </div>
 
@@ -67,10 +78,10 @@
                 </div>
             </div>
 
-            <div class="w-full flex-grow flex flex-col items-center justify-center pb-8 overflow-hidden">
-                <div id="flashcard-container" class="w-full max-w-sm flex flex-col items-center">
+            <div class="w-full flex-grow flex flex-col items-center justify-start pb-8 overflow-y-auto">
+                <div id="flashcard-container" class="w-full max-w-sm flex flex-col items-center mt-4">
                     <div id="carousel-wrapper" class="relative w-full h-80 flex justify-center items-center">
-                        <div id="card-left" class="card-base pos-left pointer-events-none hidden">
+                        <div id="card-left" class="card-base pos-left hidden" onclick="prevJoke()">
                             <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
                                 <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
                                 <p id="joke-q-left" class="text-lg font-semibold text-center"></p>
@@ -89,7 +100,7 @@
                                 </div>
                             </div>
                         </div>
-                        <div id="card-right" class="card-base pos-right pointer-events-none hidden">
+                        <div id="card-right" class="card-base pos-right hidden" onclick="nextJoke()">
                             <div class="w-full h-full shadow-lg rounded-2xl bg-white border-2 border-gray-200 flex flex-col items-center justify-center p-6 text-gray-400">
                                 <span class="text-xs font-bold absolute top-4 left-4">Q.</span>
                                 <p id="joke-q-right" class="text-lg font-semibold text-center"></p>
@@ -97,11 +108,21 @@
                         </div>
                     </div>
 
-                    <div class="flex justify-between w-full mt-8 px-2 z-20">
-                        <button onclick="prevJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition shadow-sm">⬅️ 前一個</button>
-                        <button onclick="nextJoke()" class="bg-gray-200 hover:bg-gray-300 px-5 py-3 rounded-full font-bold transition shadow-sm">下一個 ➡️</button>
+                    <div id="interaction-bar" class="flex justify-center gap-8 w-full mt-6 px-2 z-20">
+                        <button onclick="toggleInteract('likes')" id="btn-like" class="flex items-center gap-1 text-gray-400 hover:text-blue-500 transition"><span class="text-2xl">👍</span> <span id="count-like" class="font-bold">0</span></button>
+                        <button onclick="toggleInteract('dislikes')" id="btn-dislike" class="flex items-center gap-1 text-gray-400 hover:text-red-500 transition"><span class="text-2xl">👎</span> <span id="count-dislike" class="font-bold">0</span></button>
+                        <button onclick="toggleInteract('favs')" id="btn-fav" class="flex items-center gap-1 text-gray-400 hover:text-pink-500 transition"><span class="text-2xl">❤️</span> <span id="count-fav" class="font-bold">0</span></button>
                     </div>
-                    <p class="text-gray-400 text-sm mt-4">也可以在卡片上左右滑動喔！</p>
+
+                    <div id="comments-section" class="w-full mt-6 bg-white p-4 rounded-xl shadow-sm border border-gray-200">
+                        <h4 class="font-bold text-gray-700 mb-3 border-b pb-2">留言區 (<span id="count-comment">0</span>)</h4>
+                        <div id="comments-list" class="space-y-3 mb-4 max-h-40 overflow-y-auto text-sm pr-2">
+                            </div>
+                        <div class="flex gap-2">
+                            <input type="text" id="comment-input" placeholder="寫下你的評論..." class="flex-1 border p-2 rounded focus:outline-none focus:border-yellow-400 text-sm" onkeydown="if(event.key==='Enter') addComment()">
+                            <button onclick="addComment()" class="bg-yellow-400 text-white px-4 py-2 rounded font-bold hover:bg-yellow-500 transition text-sm whitespace-nowrap">送出</button>
+                        </div>
+                    </div>
                 </div>
                 <div id="list-container" class="hidden w-full max-w-2xl flex-col gap-4 overflow-y-auto mt-4" style="max-height: 100%;"></div>
             </div>
@@ -111,9 +132,9 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold flex items-center">
                     後台管理 
-                    <span id="sync-status" class="text-sm font-normal text-red-500 ml-2">(Firebase 尚未設定)</span>
+                    <span id="sync-status-admin" class="text-sm font-normal text-red-500 ml-2">(Firebase 尚未設定)</span>
                 </h2>
-                <button onclick="adminLogout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold transition text-sm">登出</button>
+                <button onclick="userLogout()" class="bg-gray-200 hover:bg-gray-300 text-gray-700 px-4 py-2 rounded font-bold transition text-sm">登出</button>
             </div>
 
             <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-purple-400">
@@ -138,7 +159,6 @@
 
             <div class="bg-white p-4 rounded-xl shadow mb-6 border-l-4 border-blue-400">
                 <h3 class="text-lg font-bold mb-2 text-blue-700">匯入 / 匯出 (CSV)</h3>
-                <p class="text-sm text-gray-500 mb-2">格式：類別,問題,答案 (支援自動排除重複與防亂碼)</p>
                 <div class="flex flex-col sm:flex-row gap-2 items-start sm:items-center">
                     <input type="file" id="csv-file" accept=".csv" class="block w-full text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100 cursor-pointer">
                     <button onclick="importCSV()" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition whitespace-nowrap mt-2 sm:mt-0">上傳匯入</button>
@@ -148,18 +168,28 @@
 
             <div class="bg-white p-4 rounded-xl shadow overflow-x-auto">
                 <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-2 gap-2">
-                    <h3 class="text-lg font-bold">現有笑話列表 <span class="text-xs font-normal text-gray-400 ml-2">(點擊欄位即可直接修改)</span></h3>
-                    <select id="admin-filter-category" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
-                        <option value="all">顯示全部類別</option>
-                    </select>
+                    <h3 class="text-lg font-bold">現有笑話列表 <span class="text-xs font-normal text-gray-400 ml-2">(點擊欄位直接修改)</span></h3>
+                    
+                    <div class="flex gap-2 w-full sm:w-auto">
+                        <input type="text" id="admin-search-input" placeholder="搜尋表格..." oninput="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm">
+                        
+                        <select id="admin-sort-select" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
+                            <option value="newest">最新新增</option>
+                            <option value="oldest">最舊新增</option>
+                        </select>
+
+                        <select id="admin-filter-category" onchange="renderAdmin()" class="border p-1 rounded focus:outline-none focus:border-yellow-400 text-sm bg-gray-50">
+                            <option value="all">全部類別</option>
+                        </select>
+                    </div>
                 </div>
-                <table class="w-full text-left border-collapse min-w-[600px]">
+                <table class="w-full text-left border-collapse min-w-[600px] text-sm">
                     <thead>
                         <tr class="bg-gray-100">
-                            <th class="p-3 border font-semibold w-1/5">類別</th>
-                            <th class="p-3 border font-semibold w-2/5">問題</th>
-                            <th class="p-3 border font-semibold w-2/5">答案</th>
-                            <th class="p-3 border font-semibold text-center w-auto">操作</th>
+                            <th class="p-2 border font-semibold w-1/5">類別</th>
+                            <th class="p-2 border font-semibold w-1/3">問題</th>
+                            <th class="p-2 border font-semibold w-1/3">答案</th>
+                            <th class="p-2 border font-semibold text-center w-auto">操作</th>
                         </tr>
                     </thead>
                     <tbody id="admin-table-body"></tbody>
@@ -174,9 +204,17 @@
             <div class="flex justify-between items-center mb-4">
                 <h2 class="text-2xl font-bold">資料統計與紀錄</h2>
             </div>
+            
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總笑話數</p><p class="text-2xl font-bold text-gray-800" id="stat-total">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總獲讚數 👍</p><p class="text-2xl font-bold text-blue-500" id="stat-likes">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總收藏數 ❤️</p><p class="text-2xl font-bold text-pink-500" id="stat-favs">0</p></div>
+                <div class="bg-white p-4 rounded-xl shadow text-center"><p class="text-gray-500 text-sm">總評論數 💬</p><p class="text-2xl font-bold text-green-500" id="stat-comments">0</p></div>
+            </div>
+
             <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div class="bg-white p-4 rounded-xl shadow flex flex-col items-center">
-                    <h3 class="text-lg font-bold mb-2" id="total-jokes-display">總笑話數: 0</h3>
+                    <h3 class="text-lg font-bold mb-2">類別統計圖</h3>
                     <div class="w-full"><canvas id="jokesChart"></canvas></div>
                 </div>
                 <div class="bg-white p-4 rounded-xl shadow h-96 flex flex-col">
@@ -195,6 +233,9 @@
     </footer>
 
     <script>
+        // ==========================================
+        // Firebase 設定與權限 
+        // ==========================================
         const firebaseConfig = {
           apiKey: "AIzaSyBlJThehQdczOSDrLHKTE126iWnzsdmkKQ",
           authDomain: "jokes-11086.firebaseapp.com",
@@ -205,10 +246,14 @@
           appId: "1:359796489930:web:ce2fb85ec9d3c5ffd33e33",
           measurementId: "G-Q3S9BH55RG"
         };
+        
+        // 請將此處改為你在後台建立的唯一「管理員信箱」
+        const ADMIN_EMAIL = "chenwei.c0508@gmail.com"; 
 
         let db = null;
         let auth = null;
         const useFirebase = firebaseConfig.apiKey !== "";
+        let isAdmin = false; // 全域判斷是否為管理員
 
         const d = new Date();
         const todayStr = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
@@ -220,13 +265,31 @@
             const visitorRef = db.ref('dailyVisitors/' + todayStr);
             
             auth.onAuthStateChanged(user => {
+                const navBtn = document.getElementById('nav-auth-btn');
+                const statusAdmin = document.getElementById('sync-status-admin');
+
                 if(user) {
-                    document.getElementById('sync-status').innerText = "(已連線並登入管理員 🟢)";
-                    document.getElementById('sync-status').className = "text-sm font-normal text-green-500 ml-2";
+                    isAdmin = (user.email === ADMIN_EMAIL); // 判斷是否為站長
+                    navBtn.innerText = '登出';
+                    navBtn.title = user.displayName || user.email;
+
+                    if (isAdmin) {
+                        statusAdmin.innerText = "(管理員已登入 🟢)";
+                        statusAdmin.className = "text-sm font-normal text-green-500 ml-2";
+                    } else {
+                        statusAdmin.innerText = "(一般訪客登入中 🟡)";
+                        statusAdmin.className = "text-sm font-normal text-yellow-500 ml-2";
+                    }
                 } else {
-                    document.getElementById('sync-status').innerText = "(已連線，目前為訪客模式 🟡)";
-                    document.getElementById('sync-status').className = "text-sm font-normal text-yellow-500 ml-2";
+                    isAdmin = false;
+                    navBtn.innerText = '👤';
+                    navBtn.title = '會員登入';
+                    statusAdmin.innerText = "(訪客模式 🔴)";
+                    statusAdmin.className = "text-sm font-normal text-red-500 ml-2";
+                    
                     if(!document.getElementById('view-admin').classList.contains('hidden')) navigate('home');
+                    
+                    // 訪客計數 (有登入就不算訪客)
                     if (localStorage.getItem('visited_date') !== todayStr) {
                         visitorRef.transaction(current => (current || 0) + 1, (error, committed) => {
                             if (committed) localStorage.setItem('visited_date', todayStr);
@@ -240,9 +303,12 @@
             });
         }
 
+        // ==========================================
+        // 核心資料狀態
+        // ==========================================
         const defaultJokes = [
-            { id: 1, category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)" },
-            { id: 2, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見" }
+            { id: Date.now(), category: "一問一答", question: "什麼動物最愛問為什麼？", answer: "豬 (因為豬事問)" },
+            { id: Date.now()+1, category: "一問一答", question: "透明的劍是什麼劍？", answer: "看不見" }
         ];
 
         let jokes = JSON.parse(localStorage.getItem('jokesDB')) || defaultJokes;
@@ -255,23 +321,13 @@
         let currentMode = 'flashcard'; 
         let isAnimating = false;
 
-        // 2. 智慧模糊查重邏輯 Helper
-        function normalizeText(text) {
-            // 濾除所有非中英數字的符號、空白，並轉為小寫
-            return String(text).replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').toLowerCase();
-        }
-
+        function normalizeText(text) { return String(text).replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').toLowerCase(); }
         function isDuplicate(q, a) {
-            const normQ = normalizeText(q);
-            const normA = normalizeText(a);
+            const normQ = normalizeText(q); const normA = normalizeText(a);
             if (!normQ || !normA) return false;
-            
             return jokes.some(j => {
-                const jq = normalizeText(j.question);
-                const ja = normalizeText(j.answer);
-                // 檢查是否高度相似或包含
-                return (jq.includes(normQ) || normQ.includes(jq)) && 
-                       (ja.includes(normA) || normA.includes(ja));
+                const jq = normalizeText(j.question); const ja = normalizeText(j.answer);
+                return (jq.includes(normQ) || normQ.includes(jq)) && (ja.includes(normA) || normA.includes(ja));
             });
         }
 
@@ -288,8 +344,13 @@
                         localStorage.setItem('logsDB', JSON.stringify(updateLogs));
                     }
                     renderHome(); 
-                    if(!document.getElementById('view-admin').classList.contains('hidden')) renderAdmin();
+                    if(!document.getElementById('view-admin').classList.contains('hidden') && isAdmin) renderAdmin();
                     if(!document.getElementById('view-stats').classList.contains('hidden')) renderStats();
+                    
+                    // 如果停留在單字卡畫面，重新整理互動數據
+                    if(!document.getElementById('view-joke').classList.contains('hidden') && currentMode === 'flashcard') {
+                        updateCardDisplay(true);
+                    }
                 });
             } else {
                 if (localStorage.getItem('visited_date') !== todayStr) {
@@ -302,6 +363,7 @@
             }
         };
 
+        // 修改：即使是訪客也能儲存資料 (寫入互動與留言)。我們依賴 Firebase Rules 保護安全。
         function saveData() {
             localStorage.setItem('jokesDB', JSON.stringify(jokes));
             localStorage.setItem('categoriesDB', JSON.stringify(categories));
@@ -311,10 +373,13 @@
                 db.ref('appData').set({ jokes: jokes, categories: categories, logs: updateLogs })
                   .catch(err => alert("儲存失敗！可能權限不足：" + err.message));
             } else if(useFirebase && !auth.currentUser) {
-                alert("你必須登入管理員才能儲存變更到雲端！");
+                console.log("訪客無法直接寫入雲端");
             }
         }
 
+        // ==========================================
+        // 介面與功能邏輯
+        // ==========================================
         function navigate(view) {
             document.querySelectorAll('.view-section').forEach(el => { el.classList.add('hidden'); el.classList.remove('flex'); });
             const target = document.getElementById(`view-${view}`);
@@ -328,7 +393,6 @@
         function renderHome() {
             const listEl = document.getElementById('category-list');
             listEl.innerHTML = '';
-            
             const usedCategories = [...new Set(jokes.map(j => j.category))];
             let needsSave = false;
             usedCategories.forEach(c => { if(!categories.includes(c)) { categories.push(c); needsSave = true; } });
@@ -413,8 +477,8 @@
             }
 
             center.className = 'card-base pos-center cursor-pointer perspective-1000' + (instant ? ' no-transition' : '');
-            left.className = 'card-base pos-left pointer-events-none' + (instant ? ' no-transition' : '');
-            right.className = 'card-base pos-right pointer-events-none' + (instant ? ' no-transition' : '');
+            left.className = 'card-base pos-left cursor-pointer' + (instant ? ' no-transition' : '');
+            right.className = 'card-base pos-right cursor-pointer' + (instant ? ' no-transition' : '');
 
             if (currentCategoryJokes.length > 1) { left.classList.remove('hidden'); right.classList.remove('hidden'); } 
             else { left.classList.add('hidden'); right.classList.add('hidden'); }
@@ -428,21 +492,107 @@
             document.getElementById('joke-q-left').innerText = prevJokeObj.question;
             document.getElementById('joke-q-right').innerText = nextJokeObj.question;
 
+            // 2. 更新互動與留言數據
+            const uid = auth && auth.currentUser ? auth.currentUser.uid : null;
+            
+            const likeCount = currentJoke.likes ? Object.keys(currentJoke.likes).length : 0;
+            const dislikeCount = currentJoke.dislikes ? Object.keys(currentJoke.dislikes).length : 0;
+            const favCount = currentJoke.favs ? Object.keys(currentJoke.favs).length : 0;
+            
+            document.getElementById('count-like').innerText = likeCount;
+            document.getElementById('count-dislike').innerText = dislikeCount;
+            document.getElementById('count-fav').innerText = favCount;
+
+            document.getElementById('btn-like').className = (uid && currentJoke.likes && currentJoke.likes[uid]) ? "flex items-center gap-1 text-blue-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-blue-500 transition";
+            document.getElementById('btn-dislike').className = (uid && currentJoke.dislikes && currentJoke.dislikes[uid]) ? "flex items-center gap-1 text-red-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-red-500 transition";
+            document.getElementById('btn-fav').className = (uid && currentJoke.favs && currentJoke.favs[uid]) ? "flex items-center gap-1 text-pink-600 transition" : "flex items-center gap-1 text-gray-400 hover:text-pink-500 transition";
+
+            // 更新留言區
+            const comments = currentJoke.comments || [];
+            document.getElementById('count-comment').innerText = comments.length;
+            const commentListEl = document.getElementById('comments-list');
+            commentListEl.innerHTML = '';
+            if (comments.length === 0) {
+                commentListEl.innerHTML = '<p class="text-gray-400 text-center py-2">目前還沒有人留言喔，來搶頭香吧！</p>';
+            } else {
+                comments.forEach(c => {
+                    const cDiv = document.createElement('div');
+                    cDiv.className = "bg-gray-50 p-2 rounded";
+                    cDiv.innerHTML = `<p class="font-bold text-gray-700 text-xs">${c.name} <span class="text-gray-400 font-normal ml-2">${c.time}</span></p><p class="text-gray-800 mt-1">${c.text}</p>`;
+                    commentListEl.appendChild(cDiv);
+                });
+            }
+
             if (instant) {
                 void center.offsetWidth;
                 center.classList.remove('no-transition'); left.classList.remove('no-transition'); right.classList.remove('no-transition');
             }
         }
 
+        // 2. 互動按鈕點擊事件 (按讚、倒讚、收藏)
+        function toggleInteract(type) {
+            if (!useFirebase || !auth.currentUser) {
+                document.getElementById('login-modal').classList.remove('hidden'); return;
+            }
+            
+            const uid = auth.currentUser.uid;
+            const currentJokeId = currentCategoryJokes[currentIndex].id;
+            const jIdx = jokes.findIndex(j => j.id === currentJokeId);
+            
+            if (!jokes[jIdx][type]) jokes[jIdx][type] = {};
+            
+            if (jokes[jIdx][type][uid]) {
+                delete jokes[jIdx][type][uid]; // 取消
+            } else {
+                jokes[jIdx][type][uid] = true; // 新增
+                // 讚與倒讚互斥
+                if (type === 'likes' && jokes[jIdx].dislikes && jokes[jIdx].dislikes[uid]) delete jokes[jIdx].dislikes[uid];
+                if (type === 'dislikes' && jokes[jIdx].likes && jokes[jIdx].likes[uid]) delete jokes[jIdx].likes[uid];
+            }
+            
+            // 更新目前陣列的 reference 讓畫面即時生效
+            currentCategoryJokes[currentIndex] = jokes[jIdx];
+            saveData();
+            updateCardDisplay(true);
+        }
+
+        // 2. 新增評論
+        function addComment() {
+            if (!useFirebase || !auth.currentUser) {
+                document.getElementById('login-modal').classList.remove('hidden'); return;
+            }
+            const inputEl = document.getElementById('comment-input');
+            const text = inputEl.value.trim();
+            if (!text) return;
+
+            const uid = auth.currentUser.uid;
+            const name = auth.currentUser.displayName || auth.currentUser.email.split('@')[0];
+            const currentJokeId = currentCategoryJokes[currentIndex].id;
+            const jIdx = jokes.findIndex(j => j.id === currentJokeId);
+
+            if (!jokes[jIdx].comments) jokes[jIdx].comments = [];
+            jokes[jIdx].comments.push({ uid, name, text, time: new Date().toLocaleString() });
+
+            inputEl.value = '';
+            currentCategoryJokes[currentIndex] = jokes[jIdx];
+            saveData();
+            updateCardDisplay(true);
+        }
+
         function renderListDisplay() {
             const listContainer = document.getElementById('list-container');
             listContainer.innerHTML = '';
             currentCategoryJokes.forEach(joke => {
+                const lc = joke.likes ? Object.keys(joke.likes).length : 0;
+                const fc = joke.favs ? Object.keys(joke.favs).length : 0;
+                const cc = joke.comments ? joke.comments.length : 0;
+                
                 const card = document.createElement('div');
                 card.className = "bg-white p-5 rounded-xl shadow-sm border border-gray-200 flex flex-col gap-3";
                 card.innerHTML = `
                     <div class="flex items-start gap-2"><span class="bg-yellow-100 text-yellow-600 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">Q</span><p class="font-semibold text-lg text-gray-800">${joke.question}</p></div>
-                    <div class="flex items-start gap-2 border-t pt-3"><span class="bg-gray-100 text-gray-500 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">A</span><p class="font-medium text-gray-600">${joke.answer}</p></div>`;
+                    <div class="flex items-start gap-2 border-t pt-3"><span class="bg-gray-100 text-gray-500 font-bold px-2 py-1 rounded text-sm mt-0.5 whitespace-nowrap">A</span><p class="font-medium text-gray-600">${joke.answer}</p></div>
+                    <div class="flex justify-end gap-3 text-xs text-gray-400 mt-2 border-t pt-2 border-gray-50"><span>👍 ${lc}</span><span>❤️ ${fc}</span><span>💬 ${cc}</span></div>`;
                 listContainer.appendChild(card);
             });
         }
@@ -481,13 +631,29 @@
             }
         }, {passive: true});
 
+        // ==========================================
+        // 登入與後台管理邏輯
+        // ==========================================
+        function handleAuthClick() {
+            if (auth && auth.currentUser) {
+                if(confirm("確定要登出嗎？")) userLogout();
+            } else {
+                document.getElementById('login-modal').classList.remove('hidden');
+            }
+        }
+
         function checkAdminAccess() {
             if (useFirebase) {
-                if (auth.currentUser) navigate('admin'); 
-                else document.getElementById('login-modal').classList.remove('hidden'); 
+                if (auth.currentUser && isAdmin) {
+                    navigate('admin'); 
+                } else if (auth.currentUser && !isAdmin) {
+                    alert("權限不足！請使用「管理員信箱」登入才能進入後台。");
+                } else {
+                    document.getElementById('login-modal').classList.remove('hidden'); 
+                }
             } else {
-                const pwd = prompt("您尚未設定 Firebase。單機測試密碼為 0000：");
-                if (pwd === "0000") navigate('admin'); else if (pwd !== null) alert("密碼錯誤！");
+                const pwd = prompt("您尚未設定 Firebase。單機測試密碼為 wei58：");
+                if (pwd === "wei58") { isAdmin = true; navigate('admin'); } else if (pwd !== null) alert("密碼錯誤！");
             }
         }
 
@@ -496,13 +662,29 @@
             document.getElementById('admin-email').value = ''; document.getElementById('admin-pwd').value = '';
         }
 
+        // 2. Google 一鍵登入
+        function googleLogin() {
+            if (!useFirebase) { alert("請先完成 Firebase 設定！"); return; }
+            const provider = new firebase.auth.GoogleAuthProvider();
+            auth.signInWithPopup(provider).then((result) => {
+                closeLoginModal();
+                alert(`歡迎，${result.user.displayName}！您現在可以對笑話按讚與留言了。`);
+            }).catch((error) => {
+                alert("Google 登入失敗：" + error.message);
+            });
+        }
+
         function adminLogin() {
             const email = document.getElementById('admin-email').value; const pwd = document.getElementById('admin-pwd').value;
             if(!email || !pwd) { alert("請輸入信箱與密碼！"); return; }
-            auth.signInWithEmailAndPassword(email, pwd).then(() => { closeLoginModal(); navigate('admin'); }).catch(() => alert("登入失敗！"));
+            auth.signInWithEmailAndPassword(email, pwd).then(() => { 
+                closeLoginModal(); 
+                if(email === ADMIN_EMAIL) navigate('admin'); 
+                else alert("已登入一般會員。若需進入後台請使用管理員信箱。");
+            }).catch(() => alert("登入失敗！請檢查信箱與密碼。"));
         }
 
-        function adminLogout() {
+        function userLogout() {
             if (useFirebase && auth.currentUser) auth.signOut().then(() => alert("已成功登出！")); else navigate('home');
         }
 
@@ -512,6 +694,8 @@
         }
 
         function renderAdmin() {
+            if (!isAdmin && useFirebase) { navigate('home'); return; } // 安全阻擋
+
             const categoryListContainer = document.getElementById('admin-category-list');
             categoryListContainer.innerHTML = '';
             categories.forEach((cat, index) => {
@@ -526,7 +710,6 @@
             selectEl.innerHTML = '<option value="" disabled selected>請選擇類別...</option>';
             categories.forEach(cat => { const opt = document.createElement('option'); opt.value = cat; opt.innerText = cat; selectEl.appendChild(opt); });
 
-            // 0. 更新類別篩選器選項
             const filterEl = document.getElementById('admin-filter-category');
             const currentFilter = filterEl ? filterEl.value : 'all';
             if(filterEl) {
@@ -538,24 +721,41 @@
                 });
             }
 
+            // 1. & 3. 讀取搜尋關鍵字與排序方式
+            const searchVal = document.getElementById('admin-search-input') ? document.getElementById('admin-search-input').value.toLowerCase() : '';
+            const sortVal = document.getElementById('admin-sort-select') ? document.getElementById('admin-sort-select').value : 'newest';
+
+            // 建立含原始 index 的映射陣列，方便排序與過濾後還能改到正確的資料
+            let mappedJokes = jokes.map((j, idx) => ({ ...j, originalIndex: idx }));
+
+            if (currentFilter !== 'all') mappedJokes = mappedJokes.filter(j => j.category === currentFilter);
+            if (searchVal) mappedJokes = mappedJokes.filter(j => j.question.toLowerCase().includes(searchVal) || j.answer.toLowerCase().includes(searchVal));
+
+            if (sortVal === 'newest') mappedJokes.sort((a, b) => b.id - a.id);
+            else mappedJokes.sort((a, b) => a.id - b.id);
+
             const tbody = document.getElementById('admin-table-body');
             tbody.innerHTML = '';
-            jokes.forEach((j, index) => {
-                // 0. 依據篩選器決定是否顯示該列
-                if (currentFilter !== 'all' && j.category !== currentFilter) return;
-
+            mappedJokes.forEach(j => {
+                const origIdx = j.originalIndex;
                 const catOptions = categories.map(c => `<option value="${c}" ${c === j.category ? 'selected' : ''}>${c}</option>`).join('');
+                
+                // 顯示該則笑話的互動數據
+                const lc = j.likes ? Object.keys(j.likes).length : 0;
+                const fc = j.favs ? Object.keys(j.favs).length : 0;
+                
                 const tr = document.createElement('tr');
                 tr.className = "border-b hover:bg-gray-50 transition-colors";
                 tr.innerHTML = `
-                    <td class="p-3 border text-gray-700">
-                        <select onchange="updateJokeCategory(${index}, this)" class="w-full bg-transparent outline-none focus:ring-2 focus:ring-yellow-300 rounded p-1 cursor-pointer border border-gray-200 hover:bg-white">
+                    <td class="p-2 border text-gray-700">
+                        <select onchange="updateJokeCategory(${origIdx}, this)" class="w-full bg-transparent outline-none focus:ring-2 focus:ring-yellow-300 rounded p-1 cursor-pointer border border-gray-200 hover:bg-white mb-1">
                             ${catOptions}
                         </select>
+                        <div class="text-[10px] text-gray-400 mt-1 flex gap-2"><span>👍 ${lc}</span><span>❤️ ${fc}</span></div>
                     </td>
-                    <td class="p-3 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'question', this)">${j.question}</td>
-                    <td class="p-3 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${index}, 'answer', this)">${j.answer}</td>
-                    <td class="p-3 border text-center whitespace-nowrap"><button onclick="deleteJoke(${index})" class="text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">刪除</button></td>`;
+                    <td class="p-2 border font-medium outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'question', this)">${j.question}</td>
+                    <td class="p-2 border text-gray-600 outline-none focus:bg-yellow-50 focus:ring-2 focus:ring-yellow-300 cursor-text transition-colors rounded-sm" contenteditable="true" onblur="updateJokeInline(${origIdx}, 'answer', this)">${j.answer}</td>
+                    <td class="p-2 border text-center whitespace-nowrap"><button onclick="deleteJoke(${origIdx})" class="text-red-500 hover:text-red-700 font-bold bg-red-50 hover:bg-red-100 px-3 py-1 rounded transition">刪除</button></td>`;
                 tbody.appendChild(tr);
             });
         }
@@ -596,12 +796,7 @@
             const question = document.getElementById('add-question').value.trim();
             const answer = document.getElementById('add-answer').value.trim();
             if (!category || !question || !answer) { alert("請完整填寫！"); return; }
-            
-            // 2. 查重檢測
-            if (isDuplicate(question, answer)) {
-                alert("這則笑話似乎已經存在囉（系統偵測到高度相似的內容）！"); return;
-            }
-
+            if (isDuplicate(question, answer)) { alert("這則笑話似乎已經存在囉（系統偵測到高度相似的內容）！"); return; }
             jokes.push({ id: Date.now(), category, question, answer }); addLog(`新增一則「${category}」笑話。`); saveData();
             document.getElementById('add-question').value = ''; document.getElementById('add-answer').value = ''; renderAdmin();
         }
@@ -627,7 +822,6 @@
             }
         }
 
-        // 3. 解析含引號的 CSV 並加入查重機制
         function importCSV() {
             const fileInput = document.getElementById('csv-file'); const file = fileInput.files[0];
             if (!file) { alert("請先選擇 CSV 檔案。"); return; }
@@ -636,8 +830,6 @@
                 const text = e.target.result;
                 const rows = text.split('\n'); 
                 let addedCount = 0; let skippedCount = 0; let addedCategories = new Set();
-                
-                // 正則表達式：正確解析可能包含雙引號與逗號的 CSV 欄位
                 const re = /,(?=(?:(?:[^"]*"){2})*[^"]*$)/;
 
                 rows.forEach(row => {
@@ -659,17 +851,14 @@
                     saveData(); renderAdmin(); alert(`成功匯入 ${addedCount} 則笑話！\n(已略過 ${skippedCount} 則重複)`); 
                 } else if (skippedCount > 0) {
                     alert(`匯入完成！但 ${skippedCount} 則笑話皆已重複，無新增任何資料。`);
-                } else {
-                    alert("匯入失敗，請檢查格式。");
-                }
+                } else { alert("匯入失敗，請檢查格式。"); }
                 fileInput.value = ""; 
             };
             reader.readAsText(file);
         }
 
-        // 3. 匯出 CSV，加入 BOM 防亂碼
         function exportCSV() {
-            let csvContent = "\uFEFF"; // 魔法 BOM 標籤，讓 Excel 乖乖用 UTF-8 讀取
+            let csvContent = "\uFEFF"; 
             csvContent += "類別,問題,答案\n";
             jokes.forEach(j => {
                 const escapeCSV = str => `"${String(str).replace(/"/g, '""')}"`;
@@ -678,20 +867,28 @@
             const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
             const url = URL.createObjectURL(blob);
             const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", "jokes_export.csv");
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-            
-            addLog("執行了笑話資料匯出 (CSV)。");
-            saveData();
+            link.setAttribute("href", url); link.setAttribute("download", "jokes_export.csv");
+            document.body.appendChild(link); link.click(); document.body.removeChild(link);
+            addLog("執行了笑話資料匯出 (CSV)。"); saveData();
         }
 
         function renderStats() {
-            document.getElementById('total-jokes-display').innerText = `總笑話數: ${jokes.length}`;
+            // 2. 計算所有互動數據總和
+            let totalLikes = 0, totalFavs = 0, totalComments = 0;
             const counts = {}; categories.forEach(c => counts[c] = 0); 
-            jokes.forEach(j => { counts[j.category] = (counts[j.category] || 0) + 1; });
+
+            jokes.forEach(j => { 
+                counts[j.category] = (counts[j.category] || 0) + 1; 
+                if (j.likes) totalLikes += Object.keys(j.likes).length;
+                if (j.favs) totalFavs += Object.keys(j.favs).length;
+                if (j.comments) totalComments += j.comments.length;
+            });
+
+            document.getElementById('total-jokes-display').innerText = `總笑話數: ${jokes.length}`;
+            document.getElementById('stat-total').innerText = jokes.length;
+            document.getElementById('stat-likes').innerText = totalLikes;
+            document.getElementById('stat-favs').innerText = totalFavs;
+            document.getElementById('stat-comments').innerText = totalComments;
 
             const ctx = document.getElementById('jokesChart').getContext('2d');
             if (chartInstance) chartInstance.destroy();
