@@ -272,7 +272,6 @@
           measurementId: "G-Q3S9BH55RG"
         };
         
-        // 請將此處改為你在後台建立的唯一「管理員信箱」
         const ADMIN_EMAIL = "chenwei.c0508@gmail.com";
 
         let db = null; let auth = null;
@@ -310,6 +309,10 @@
                         });
                     }
                 }
+                // 當權限改變時，若剛好在笑話卡片頁面，重新渲染畫面以顯示/隱藏刪除按鈕
+                if (!document.getElementById('view-joke').classList.contains('hidden')) {
+                    updateCardDisplay(true);
+                }
             });
             visitorRef.on('value', snap => { document.getElementById('visitor-count').innerText = snap.val() || 0; });
         }
@@ -330,7 +333,6 @@
         let isAnimating = false;
 
         function normalizeText(text) { return String(text).replace(/[^\u4e00-\u9fa5a-zA-Z0-9]/g, '').toLowerCase(); }
-        // 4. 改寫比對邏輯，回傳重複項目的 Index 以便後續覆蓋
         function findDuplicateIndex(q, a) {
             const normQ = normalizeText(q); const normA = normalizeText(a);
             if (!normQ || !normA) return -1;
@@ -562,9 +564,17 @@
             if (comments.length === 0) {
                 commentListEl.innerHTML = '<p class="text-gray-400 text-center py-2">目前還沒有人留言喔，來搶頭香吧！</p>';
             } else {
-                comments.forEach(c => {
-                    const cDiv = document.createElement('div'); cDiv.className = "bg-gray-50 p-2 rounded";
-                    cDiv.innerHTML = `<p class="font-bold text-gray-700 text-xs">${c.name} <span class="text-gray-400 font-normal ml-2">${c.time}</span></p><p class="text-gray-800 mt-1">${c.text}</p>`;
+                comments.forEach((c, cIdx) => {
+                    const cDiv = document.createElement('div'); 
+                    cDiv.className = "bg-gray-50 p-2 rounded relative group";
+                    
+                    // 1. 新增管理員專屬刪除按鈕
+                    let deleteBtnHtml = '';
+                    if (isAdmin) {
+                        deleteBtnHtml = `<button onclick="deleteComment(${cIdx})" class="absolute top-2 right-2 text-red-400 hover:text-red-600 text-xs font-bold px-2 py-1 bg-red-50 rounded transition opacity-70 hover:opacity-100">刪除</button>`;
+                    }
+                    
+                    cDiv.innerHTML = `${deleteBtnHtml}<p class="font-bold text-gray-700 text-xs">${c.name} <span class="text-gray-400 font-normal ml-2">${c.time}</span></p><p class="text-gray-800 mt-1 pr-8">${c.text}</p>`;
                     commentListEl.appendChild(cDiv);
                 });
             }
@@ -595,6 +605,23 @@
             if (!jokes[jIdx].comments) jokes[jIdx].comments = [];
             jokes[jIdx].comments.push({ uid, name, text, time: new Date().toLocaleString() });
             inputEl.value = ''; currentCategoryJokes[currentIndex] = jokes[jIdx]; saveData(); updateCardDisplay(true);
+        }
+        
+        // 2. 專屬刪除留言邏輯
+        function deleteComment(commentIndex) {
+            if (!isAdmin) return;
+            if (!confirm("確定要刪除這則留言嗎？")) return;
+            
+            const currentJokeId = currentCategoryJokes[currentIndex].id; 
+            const jIdx = jokes.findIndex(j => j.id === currentJokeId);
+            
+            if (jIdx !== -1 && jokes[jIdx].comments) {
+                jokes[jIdx].comments.splice(commentIndex, 1);
+                addLog(`管理員刪除了一則留言。`);
+                currentCategoryJokes[currentIndex] = jokes[jIdx]; 
+                saveData(); 
+                updateCardDisplay(true); 
+            }
         }
 
         function renderListDisplay() {
@@ -732,7 +759,6 @@
             categories.push(newCat); addLog(`新增了類別：「${newCat}」。`); saveData(); document.getElementById('add-new-category-input').value = ''; renderAdmin();
         }
         
-        // 4. 單筆新增檢查覆蓋
         function addJoke() {
             const category = document.getElementById('add-category-select').value; const question = document.getElementById('add-question').value.trim();
             const answer = document.getElementById('add-answer').value.trim(); const source = document.getElementById('add-source').value.trim();
@@ -767,7 +793,6 @@
         function deleteJoke(index) { if (confirm("確定刪除這則笑話嗎？")) { jokes.splice(index, 1); addLog(`刪除一則笑話。`); saveData(); renderAdmin(); } }
         function clearAllData() { if(confirm("警告：這將會清除所有資料！確定嗎？")) { jokes = [...defaultJokes]; categories = [...new Set(defaultJokes.map(j => j.category))]; updateLogs = [{ time: new Date().toLocaleString(), msg: "系統重置。" }]; saveData(); renderAdmin(); } }
 
-        // 4. 批量匯入檢查覆蓋
         function importCSV() {
             const fileInput = document.getElementById('csv-file'); const file = fileInput.files[0]; if (!file) { alert("請先選擇 CSV 檔案。"); return; }
             const reader = new FileReader();
